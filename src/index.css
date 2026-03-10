@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg-main: #0D1117;
+  --color-bg-card: #161B22;
+  --color-border: #30363D;
+  
+  --color-text-primary: #E6EDF3;
+  --color-text-secondary: #8B949E;
+  --color-text-tertiary: #484F58;
+
+  --color-gold: #C8A951;
+  --color-gold-hover: #D4B96A;
+  --color-gold-soft: rgba(200, 169, 81, 0.10);
+
+  --color-blue-action: #1F6FEB;
+  --color-blue-hover: #388BFD;
+
+  --color-status-green: #3FB950;
+  --color-status-red: #F85149;
+  --color-status-yellow: #D29922;
+}
+
+body {
+  background-color: var(--color-bg-main);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0D1117; 
+}
+::-webkit-scrollbar-thumb {
+  background: #30363D; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #484F58; 
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Only show the print container and its children */
+  #printable-area, #printable-area * {
+    visibility: visible;
+  }
+
+  #printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Reset body background */
+  body {
+    background-color: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+}
