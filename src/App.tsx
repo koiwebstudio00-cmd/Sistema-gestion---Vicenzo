@@ -1,18 +1,19 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { 
-  Calendar, Users, Package, CreditCard, BarChart3, LogOut, 
-  ChevronLeft, ChevronRight, Search, Filter, Plus, 
+import {
+  Calendar, Users, Package, CreditCard, BarChart3, LogOut,
+  ChevronLeft, ChevronRight, Search, Filter, Plus,
   MapPin, Phone, Mail, AlertTriangle, CheckCircle, Clock,
-  DollarSign, FileText, Edit2, Printer, X, ChevronDown, Menu, Tag
+  DollarSign, FileText, Edit2, Printer, X, ChevronDown, Menu, Tag, Scale,
+  Settings, Trash2
 } from 'lucide-react';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
 
 // --- TYPES ---
 
-type UserRole = 'JEFE' | 'RECEPCIONISTA' | 'PRODUCCION' | 'TIO_FRANCO';
+type UserRole = 'JEFE' | 'RECEPCIONISTA' | 'PRODUCCION' | 'TIO_FRANCO' | 'CATERING';
 
 interface User {
   id: string;
@@ -52,17 +53,19 @@ const USERS: User[] = [
   { id: '2', name: 'Julia', role: 'RECEPCIONISTA' },
   { id: '3', name: 'Hernán', role: 'PRODUCCION' },
   { id: '4', name: 'Tío Franco', role: 'TIO_FRANCO' },
+  { id: '5', name: 'Catering (Bolognini)', role: 'CATERING' },
+  { id: '6', name: 'Orlando', role: 'JEFE' },
 ];
 
 const EVENTS_DATA: Event[] = [
   // MARZO
   { id: '1', title: 'Casamiento Rodríguez-Pérez', date: '2026-03-01', category: 'CASAMIENTO', guests: 200, status: 'CONFIRMADO', balance: 0, total: 15000000, paid: 15000000 },
   { id: '2', title: 'Quinceañera Valentina Suárez', date: '2026-03-07', category: 'QUINCEANERA', guests: 160, status: 'SENADO', balance: 4800000, total: 18200000, paid: 13400000 },
-  { id: '3', title: 'Cumpleaños Empresarial TechCorp', date: '2026-03-08', category: 'CORPORATIVO', guests: 180, status: 'SENADO', balance: 6200000, total: 19800000, paid: 13600000 },
-  { id: '4', title: 'Quinceañera Isabella Torres', date: '2026-03-14', category: 'QUINCEANERA', guests: 140, status: 'RESERVADO_PENDIENTE', balance: 12400000, total: 16500000, paid: 4100000 },
-  { id: '5', title: 'Casamiento Moreno-Giuliani', date: '2026-03-15', category: 'CASAMIENTO', guests: 220, status: 'CONFIRMADO', balance: 0, total: 22800000, paid: 22800000 },
-  { id: '6', title: 'Cumpleaños 50 — Roberto Paz', date: '2026-03-21', category: 'CUMPLEANOS', guests: 170, status: 'SENADO', balance: 5100000, total: 14500000, paid: 9400000 },
-  { id: '7', title: 'Quinceañera Luciana Martínez', date: '2026-03-22', category: 'QUINCEANERA', guests: 190, status: 'CONFIRMADO', balance: 1200000, total: 17800000, paid: 16600000 },
+  { id: '3', title: 'Cumpleaños Empresarial TechCorp', date: '2026-03-08', category: 'CORPORATIVO', guests: 180, status: 'SENADO', balance: -125000, total: 19800000, paid: 19925000 }, // Balance a favor (A cuenta)
+  { id: '4', title: 'Quinceañera Isabella Torres', date: '2026-03-14', category: 'QUINCEANERA', guests: 140, status: 'RESERVADO_PENDIENTE', balance: 12400000, total: 16500000, paid: 4100000 }, // Deuda alta (Debe)
+  { id: '5', title: 'Casamiento Moreno-Giuliani', date: '2026-03-15', category: 'CASAMIENTO', guests: 220, status: 'CONFIRMADO', balance: 0, total: 22800000, paid: 22800000 }, // Saldado
+  { id: '6', title: 'Cumpleaños 50 — Roberto Paz', date: '2026-03-21', category: 'CUMPLEANOS', guests: 170, status: 'SENADO', balance: -45000, total: 14500000, paid: 14545000 }, // Pequeño a favor (A cuenta)
+  { id: '7', title: 'Quinceañera Luciana Martínez', date: '2026-03-22', category: 'QUINCEANERA', guests: 190, status: 'CONFIRMADO', balance: 1200000, total: 17800000, paid: 16600000 }, // Deuda pendiente (Debe)
   { id: '8', title: 'Casamiento Blanco-Fernández', date: '2026-03-29', category: 'CASAMIENTO', guests: 210, status: 'SENADO', balance: 8900000, total: 21400000, paid: 12500000 },
   // ABRIL
   { id: '9', title: 'Casamiento López-García', date: '2026-04-05', category: 'CASAMIENTO', guests: 180, status: 'CONFIRMADO', balance: 0, total: 16000000, paid: 16000000 },
@@ -149,7 +152,7 @@ const formatCurrency = (amount: number, currency: 'ARS' | 'USD' = 'ARS') => {
 
 // --- COMPONENT PLACEHOLDERS ---
 
-const CustomSelect = ({ value, onChange, options, label }: { value: string, onChange: (val: string) => void, options: {value: string, label: string}[], label: string }) => {
+const CustomSelect = ({ value, onChange, options, label }: { value: string, onChange: (val: string) => void, options: { value: string, label: string }[], label: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -167,18 +170,18 @@ const CustomSelect = ({ value, onChange, options, label }: { value: string, onCh
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <div 
+      <div
         onClick={() => setIsOpen(!isOpen)}
         className="w-full bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-lg px-4 py-2.5 cursor-pointer flex justify-between items-center focus:outline-none focus:border-[#C8A951] focus:ring-1 focus:ring-[#C8A951]"
       >
         <span>{selectedOption?.label || 'Seleccionar...'}</span>
         <ChevronDown className={`h-4 w-4 text-[#8B949E] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
-      
+
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-[#161B22] border border-[#30363D] rounded-lg shadow-xl max-h-60 overflow-y-auto">
           {options.map(option => (
-            <div 
+            <div
               key={option.value}
               onClick={() => {
                 onChange(option.value);
@@ -220,10 +223,10 @@ const LoginView = ({ onLogin }: { onLogin: (user: User) => void }) => {
     <div className="flex items-center justify-center min-h-screen bg-[#0D1117] text-[#E6EDF3] font-sans">
       <div className="w-full max-w-[420px] mx-4 bg-[#161B22] border border-[#30363D] rounded-xl p-8 shadow-lg">
         <div className="flex flex-col items-center mb-8">
-          <img 
-            src="https://i.postimg.cc/fTXLSgfS/images-removebg-preview.png" 
-            alt="Vicenzo Logo" 
-            className="h-12 object-contain mb-4" 
+          <img
+            src="https://i.postimg.cc/fTXLSgfS/images-removebg-preview.png"
+            alt="Vicenzo Logo"
+            className="h-12 object-contain mb-4"
           />
           <h2 className="text-xl font-display font-semibold text-[#E6EDF3]">Sistema de Gestión de Eventos</h2>
         </div>
@@ -231,34 +234,34 @@ const LoginView = ({ onLogin }: { onLogin: (user: User) => void }) => {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-2">Salón activo</label>
-            <CustomSelect 
-              value={salon} 
-              onChange={setSalon} 
-              options={salonOptions} 
-              label="Salón activo" 
+            <CustomSelect
+              value={salon}
+              onChange={setSalon}
+              options={salonOptions}
+              label="Salón activo"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-2">Usuario</label>
-            <CustomSelect 
-              value={selectedUser} 
-              onChange={setSelectedUser} 
-              options={userOptions} 
-              label="Usuario" 
+            <CustomSelect
+              value={selectedUser}
+              onChange={setSelectedUser}
+              options={userOptions}
+              label="Usuario"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-2">Contraseña</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               placeholder="••••••••"
               className="w-full bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#C8A951] focus:ring-1 focus:ring-[#C8A951]"
             />
           </div>
 
-          <button 
+          <button
             type="submit"
             className="w-full bg-[#C8A951] hover:bg-[#D4B96A] text-[#0D1117] font-bold py-3 rounded-lg transition-colors"
           >
@@ -276,21 +279,25 @@ const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onClose }: 
   const menuItems = [
     { id: 'AGENDA', label: 'Agenda', icon: Calendar },
     { id: 'EVENTOS', label: 'Eventos', icon: FileText },
-    { id: 'CATALOGO', label: 'Catálogo', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO'] },
-    { id: 'PAGOS', label: 'Pagos', icon: CreditCard, restricted: ['PRODUCCION', 'TIO_FRANCO'] },
-    { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO'] },
-    { id: 'GASTOS', label: 'Gastos Semanales', icon: DollarSign, restricted: ['RECEPCIONISTA', 'PRODUCCION'] },
+    { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
+    { id: 'PAGOS', label: 'Pagos', icon: CreditCard, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
+    { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO'] },
+    { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
+    { id: 'GASTOS', label: 'Gastos Semanales', icon: DollarSign, restricted: ['RECEPCIONISTA', 'PRODUCCION', 'CATERING'] },
   ];
 
-  const filteredItems = menuItems.filter(item => 
-    !item.restricted || !item.restricted.includes(user.role)
-  );
+  const filteredItems = menuItems.filter(item => {
+    if (user.role === 'CATERING') {
+      return ['AGENDA', 'EVENTOS', 'LIQUIDACIONES'].includes(item.id);
+    }
+    return !item.restricted || !item.restricted.includes(user.role);
+  });
 
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
         />
@@ -302,21 +309,21 @@ const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onClose }: 
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="p-6 flex flex-col items-center border-b border-[#30363D]/50 relative">
-          <button 
+          <button
             onClick={onClose}
             className="absolute top-2 right-2 p-2 text-[#8B949E] hover:text-[#E6EDF3] lg:hidden"
           >
             <X size={20} />
           </button>
 
-          <img 
-            src="https://i.postimg.cc/fTXLSgfS/images-removebg-preview.png" 
-            alt="Vicenzo" 
-            className="h-10 object-contain mb-4" 
+          <img
+            src="https://i.postimg.cc/fTXLSgfS/images-removebg-preview.png"
+            alt="Vicenzo"
+            className="h-10 object-contain mb-4"
           />
-          
+
           <div className="relative w-full">
-            <select 
+            <select
               value={salon}
               onChange={(e) => setSalon(e.target.value)}
               className="w-full bg-[#161B22] border border-[#30363D] text-[#E6EDF3] text-sm rounded-lg px-3 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
@@ -339,11 +346,10 @@ const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onClose }: 
                   onChangeView(item.id);
                   onClose(); // Close sidebar on mobile when item clicked
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'bg-[#C8A951]/15 text-[#C8A951]' 
-                    : 'text-[#E6EDF3] hover:bg-[#161B22]'
-                }`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                  ? 'bg-[#C8A951]/15 text-[#C8A951]'
+                  : 'text-[#E6EDF3] hover:bg-[#161B22]'
+                  }`}
               >
                 <Icon size={18} />
                 {item.label}
@@ -351,6 +357,22 @@ const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onClose }: 
             );
           })}
         </nav>
+
+        <div className="px-3 py-4 space-y-1">
+          <button
+            onClick={() => {
+              onChangeView('CONFIGURACION');
+              onClose();
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeView === 'CONFIGURACION'
+              ? 'bg-[#C8A951]/15 text-[#C8A951]'
+              : 'text-[#E6EDF3] hover:bg-[#161B22]'
+              }`}
+          >
+            <Settings size={18} />
+            Configuración
+          </button>
+        </div>
 
         <div className="p-4 border-t border-[#30363D]">
           <div className="flex items-center gap-3 mb-3">
@@ -362,7 +384,7 @@ const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onClose }: 
               <p className="text-xs text-[#8B949E] truncate">{user.role}</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onLogout}
             className="w-full flex items-center gap-2 text-[#F85149] hover:bg-[#F85149]/10 px-2 py-1.5 rounded text-sm transition-colors"
           >
@@ -402,14 +424,14 @@ const Modal = ({ isOpen, onClose, title, children, footer }: any) => {
 const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) => {
   const [viewMode, setViewMode] = useState<'ANNUAL' | 'MONTHLY'>('ANNUAL');
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
-  const [filterPayment, setFilterPayment] = useState<string>('ALL');
+  const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [selectedDate, setSelectedDate] = useState<number>(new Date().getDate());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const startDay = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7; // Shift to start on Monday
-  
+
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const blanks = Array.from({ length: startDay }, (_, i) => i);
 
@@ -418,19 +440,19 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
     return EVENTS_DATA.filter(e => {
       const matchesDate = e.date === dateStr;
       const matchesCategory = filterCategory === 'ALL' || e.category === filterCategory;
-      const matchesPayment = filterPayment === 'ALL' || 
-        (filterPayment === 'PAID' ? e.balance === 0 : e.balance > 0);
-      
-      return matchesDate && matchesCategory && matchesPayment;
+      const matchesStatus = filterStatus === 'ALL' || e.status === filterStatus;
+
+      return matchesDate && matchesCategory && matchesStatus;
     });
   };
 
   const getEventColor = (category: EventCategory) => {
     switch (category) {
-      case 'QUINCEANERA': return 'bg-[#C8A951]/20 border-l-2 border-[#C8A951] text-[#E6EDF3]';
+      case 'QUINCEANERA': return 'bg-[#E91E8C]/20 border-l-2 border-[#E91E8C] text-[#E6EDF3]';
       case 'CASAMIENTO': return 'bg-[#1F6FEB]/20 border-l-2 border-[#1F6FEB] text-[#E6EDF3]';
-      case 'CUMPLEANOS': return 'bg-[#3FB950]/20 border-l-2 border-[#3FB950] text-[#E6EDF3]';
-      default: return 'bg-[#30363D]/40 border-l-2 border-[#8B949E] text-[#E6EDF3]';
+      case 'CUMPLEANOS': return 'bg-[#C8A951]/20 border-l-2 border-[#C8A951] text-[#E6EDF3]';
+      case 'CORPORATIVO': return 'bg-[#6B7280]/20 border-l-2 border-[#6B7280] text-[#E6EDF3]';
+      default: return 'bg-[#8B5CF6]/20 border-l-2 border-[#8B5CF6] text-[#E6EDF3]';
     }
   };
 
@@ -476,7 +498,7 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4 lg:gap-0">
         <div className="flex items-center gap-4">
           {viewMode === 'MONTHLY' && (
-            <button 
+            <button
               onClick={() => setViewMode('ANNUAL')}
               className="p-2 hover:bg-[#161B22] rounded-lg text-[#8B949E] hover:text-[#E6EDF3] transition-colors"
             >
@@ -487,34 +509,36 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
             {viewMode === 'ANNUAL' ? `Agenda ${currentYear}` : `Agenda — ${months[currentMonth]}`}
           </h1>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
           {/* Filters - Show in both views */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
             <div className="relative flex-1 sm:flex-none w-full sm:w-auto">
-              <select 
+              <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="w-full sm:w-auto bg-[#161B22] border border-[#30363D] text-[#E6EDF3] text-sm rounded-lg pl-3 pr-8 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
               >
                 <option value="ALL">Todos los tipos</option>
                 <option value="CASAMIENTO">Casamiento (Azul)</option>
-                <option value="QUINCEANERA">Quinceañera (Dorado)</option>
-                <option value="CUMPLEANOS">Cumpleaños (Verde)</option>
+                <option value="QUINCEANERA">15 Años (Rosa)</option>
+                <option value="CUMPLEANOS">Cumpleaños (Dorado)</option>
                 <option value="CORPORATIVO">Corporativo (Gris)</option>
               </select>
               <ChevronDown className="absolute right-3 top-2.5 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
             </div>
 
             <div className="relative flex-1 sm:flex-none w-full sm:w-auto">
-              <select 
-                value={filterPayment}
-                onChange={(e) => setFilterPayment(e.target.value)}
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
                 className="w-full sm:w-auto bg-[#161B22] border border-[#30363D] text-[#E6EDF3] text-sm rounded-lg pl-3 pr-8 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
               >
-                <option value="ALL">Todos los pagos</option>
-                <option value="PAID">Saldados</option>
-                <option value="PENDING">Pendientes</option>
+                <option value="ALL">Todos los estados</option>
+                <option value="CONFIRMADO">Confirmado</option>
+                <option value="SENADO">Señado</option>
+                <option value="RESERVADO_PENDIENTE">Reservado pendiente</option>
+                <option value="CANCELADO">Cancelado</option>
               </select>
               <ChevronDown className="absolute right-3 top-2.5 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
             </div>
@@ -546,14 +570,13 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                 const d = new Date(e.date);
                 const matchesMonth = d.getMonth() === index && d.getFullYear() === currentYear;
                 const matchesCategory = filterCategory === 'ALL' || e.category === filterCategory;
-                const matchesPayment = filterPayment === 'ALL' || 
-                  (filterPayment === 'PAID' ? e.balance === 0 : e.balance > 0);
-                
-                return matchesMonth && matchesCategory && matchesPayment;
+                const matchesStatus = filterStatus === 'ALL' || e.status === filterStatus;
+
+                return matchesMonth && matchesCategory && matchesStatus;
               });
 
               return (
-                <div 
+                <div
                   key={month}
                   onClick={() => handleMonthClick(index)}
                   className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 hover:border-[#8B949E] cursor-pointer transition-all group relative overflow-hidden"
@@ -561,7 +584,7 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-lg font-bold text-[#E6EDF3] group-hover:text-[#C8A951] transition-colors">{month}</h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-7 text-center mb-1">
                     {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d, i) => (
                       <div key={`${d}-${i}`} className="text-[#8B949E] text-[10px] font-medium">{d}</div>
@@ -574,23 +597,28 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                       const dateStr = `${currentYear}-${(index + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                       const dayEvents = monthEvents.filter(e => e.date === dateStr);
                       const hasEvents = dayEvents.length > 0;
-                      
+                      const event = hasEvents ? dayEvents[0] : null;
+
+                      // Category Colors
+                      const getCategoryColor = (cat?: EventCategory) => {
+                        switch (cat) {
+                          case 'QUINCEANERA': return '#E91E8C';
+                          case 'CASAMIENTO': return '#1F6FEB';
+                          case 'CUMPLEANOS': return '#C8A951';
+                          case 'CORPORATIVO': return '#6B7280';
+                          default: return '#8B5CF6';
+                        }
+                      };
+
                       return (
                         <div key={day} className="flex justify-center items-center h-6 relative">
-                          <span className={`text-xs ${hasEvents ? 'text-[#E6EDF3] font-bold' : 'text-[#8B949E]'}`}>
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] transition-all
+                              ${hasEvents ? 'font-bold text-white shadow-sm' : 'text-[#8B949E]'}`}
+                            style={hasEvents ? { backgroundColor: getCategoryColor(event?.category) } : {}}
+                          >
                             {day}
-                          </span>
-                          {hasEvents && (
-                            <div className="absolute bottom-0.5 flex gap-0.5">
-                              {dayEvents.slice(0, 3).map((ev, i) => (
-                                <div key={i} className={`w-1 h-1 rounded-full ${
-                                  ev.category === 'CASAMIENTO' ? 'bg-[#1F6FEB]' :
-                                  ev.category === 'QUINCEANERA' ? 'bg-[#C8A951]' :
-                                  'bg-[#3FB950]'
-                                }`} />
-                              ))}
-                            </div>
-                          )}
+                          </div>
                         </div>
                       );
                     })}
@@ -607,159 +635,164 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
         <>
           {/* Mobile Filters */}
           <div className="lg:hidden mb-4">
-        <div className="relative w-full">
-          <select 
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="w-full bg-[#161B22] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-4 pr-10 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
-          >
-            <option value="ALL">Todos los tipos de evento</option>
-            <option value="CASAMIENTO">Casamiento</option>
-            <option value="QUINCEANERA">Quinceañera</option>
-            <option value="CUMPLEANOS">Cumpleaños</option>
-            <option value="CORPORATIVO">Corporativo</option>
-          </select>
-          <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
-        </div>
-      </div>
-
-      {/* Desktop View (Grid) */}
-      <div className="hidden lg:flex flex-1 bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden flex-col">
-        <div className="overflow-x-auto">
-          <div className="min-w-[800px]">
-            <div className="grid grid-cols-7 border-b border-[#30363D] bg-[#0D1117]">
-              {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => (
-                <div key={day} className="py-3 text-center text-sm font-medium text-[#8B949E] uppercase tracking-wider">
-                  {day}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-7 auto-rows-fr h-[calc(100vh-280px)] min-h-[500px]">
-              {blanks.map((_, i) => (
-                <div key={`blank-${i}`} className="border-b border-r border-[#30363D] bg-[#0D1117]/30 min-h-[100px]" />
-              ))}
-              {days.map(day => {
-                const dayEvents = getEventsForDay(day);
-                return (
-                  <div key={day} className="border-b border-r border-[#30363D] p-2 min-h-[100px] relative group hover:bg-[#30363D]/10 transition-colors">
-                    <span className={`text-sm font-medium ${dayEvents.length > 0 ? 'text-[#E6EDF3]' : 'text-[#8B949E]'}`}>{day}</span>
-                    <div className="mt-2 space-y-1.5">
-                      {dayEvents.map(event => (
-                        <div 
-                          key={event.id} 
-                          onClick={(e) => { e.stopPropagation(); onSelectEvent(event.id); }}
-                          className={`text-xs p-1.5 rounded mb-1 truncate cursor-pointer hover:brightness-110 ${getEventColor(event.category)}`}
-                        >
-                          <div className="font-medium truncate">{event.title}</div>
-                          <div className="opacity-75 text-[10px] uppercase flex justify-between">
-                            <span>{event.status.replace('_', ' ')}</span>
-                            {event.balance > 0 && <span className="text-[#F85149] font-bold">$</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-              {/* Fill remaining cells if needed */}
-              {Array.from({ length: 42 - (days.length + blanks.length) }).map((_, i) => (
-                 <div key={`end-blank-${i}`} className="border-b border-r border-[#30363D] bg-[#0D1117]/30 min-h-[100px]" />
-              ))}
+            <div className="relative w-full">
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="w-full bg-[#161B22] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-4 pr-10 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
+              >
+                <option value="ALL">Todos los tipos de evento</option>
+                <option value="CASAMIENTO">Casamiento</option>
+                <option value="QUINCEANERA">Quinceañera</option>
+                <option value="CUMPLEANOS">Cumpleaños</option>
+                <option value="CORPORATIVO">Corporativo</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Mobile View (List & Compact Calendar) */}
-      <div className="lg:hidden flex flex-col pb-20">
-        {/* Compact Calendar */}
-        <div className="mb-6">
-           <div className="flex justify-between items-center mb-4 px-2">
-             <div className="text-xl font-bold text-[#E6EDF3]">{months[currentMonth]} {currentYear}</div>
-             <div className="flex gap-2">
-               <button onClick={handlePrevMonth} className="p-1 bg-[#161B22] rounded-lg border border-[#30363D] text-[#8B949E]"><ChevronLeft size={20} /></button>
-               <button onClick={handleNextMonth} className="p-1 bg-[#161B22] rounded-lg border border-[#30363D] text-[#8B949E]"><ChevronRight size={20} /></button>
-             </div>
-           </div>
-           
-           <div className="grid grid-cols-7 text-center mb-2">
-             {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-               <div key={d} className="text-[#8B949E] text-xs font-medium py-2">{d}</div>
-             ))}
-           </div>
-           
-           <div className="grid grid-cols-7 gap-y-2">
-             {blanks.map((_, i) => <div key={`mb-${i}`} />)}
-             {days.map(day => {
-               const hasEvents = getEventsForDay(day).length > 0;
-               const isSelected = selectedDate === day;
-               return (
-                 <div key={day} className="flex justify-center">
-                   <button 
-                     onClick={() => setSelectedDate(day)}
-                     className={`
+          {/* Desktop View (Grid) */}
+          <div className="hidden lg:flex flex-1 bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden flex-col">
+            <div className="overflow-x-auto">
+              <div className="min-w-[800px]">
+                <div className="grid grid-cols-7 border-b border-[#30363D] bg-[#0D1117]">
+                  {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => (
+                    <div key={day} className="py-3 text-center text-sm font-medium text-[#8B949E] uppercase tracking-wider">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 auto-rows-fr h-[calc(100vh-280px)] min-h-[500px]">
+                  {blanks.map((_, i) => (
+                    <div key={`blank-${i}`} className="border-b border-r border-[#30363D] bg-[#0D1117]/30 min-h-[100px]" />
+                  ))}
+                  {days.map(day => {
+                    const dayEvents = getEventsForDay(day);
+                    return (
+                      <div key={day} className="border-b border-r border-[#30363D] p-2 min-h-[100px] relative group hover:bg-[#30363D]/10 transition-colors">
+                        <span className={`text-sm font-medium ${dayEvents.length > 0 ? 'text-[#E6EDF3]' : 'text-[#8B949E]'}`}>{day}</span>
+                        <div className="mt-2 space-y-1.5">
+                          {dayEvents.map(event => {
+                            const statusLabel = event.status === 'RESERVADO_PENDIENTE' ? 'RESERVADO PENDIENTE' : event.status === 'SENADO' ? 'SEÑADO' : event.status;
+                            return (
+                              <div
+                                key={event.id}
+                                onClick={(e) => { e.stopPropagation(); onSelectEvent(event.id); }}
+                                className={`text-xs p-1.5 rounded mb-1 truncate cursor-pointer hover:brightness-110 ${getEventColor(event.category)}`}
+                              >
+                                <div className="font-medium truncate">{event.title}</div>
+                                <div className="opacity-75 text-[10px] uppercase flex justify-between">
+                                  <span>{statusLabel}</span>
+                                  {event.balance > 0 && <span className="text-[#F85149] font-bold">$</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {/* Fill remaining cells if needed */}
+                  {Array.from({ length: 42 - (days.length + blanks.length) }).map((_, i) => (
+                    <div key={`end-blank-${i}`} className="border-b border-r border-[#30363D] bg-[#0D1117]/30 min-h-[100px]" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile View (List & Compact Calendar) */}
+          <div className="lg:hidden flex flex-col pb-20">
+            {/* Compact Calendar */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4 px-2">
+                <div className="text-xl font-bold text-[#E6EDF3]">{months[currentMonth]} {currentYear}</div>
+                <div className="flex gap-2">
+                  <button onClick={handlePrevMonth} className="p-1 bg-[#161B22] rounded-lg border border-[#30363D] text-[#8B949E]"><ChevronLeft size={20} /></button>
+                  <button onClick={handleNextMonth} className="p-1 bg-[#161B22] rounded-lg border border-[#30363D] text-[#8B949E]"><ChevronRight size={20} /></button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-7 text-center mb-2">
+                {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
+                  <div key={d} className="text-[#8B949E] text-xs font-medium py-2">{d}</div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-y-2">
+                {blanks.map((_, i) => <div key={`mb-${i}`} />)}
+                {days.map(day => {
+                  const hasEvents = getEventsForDay(day).length > 0;
+                  const isSelected = selectedDate === day;
+                  return (
+                    <div key={day} className="flex justify-center">
+                      <button
+                        onClick={() => setSelectedDate(day)}
+                        className={`
                        w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all relative
                        ${isSelected ? 'bg-[#1F6FEB] text-white shadow-[0_0_10px_rgba(31,111,235,0.4)]' : 'text-[#E6EDF3] hover:bg-[#161B22]'}
                        ${!isSelected && hasEvents ? 'text-[#C8A951] font-bold' : ''}
                      `}
-                   >
-                     {day}
-                     {!isSelected && hasEvents && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[#C8A951]" />}
-                   </button>
-                 </div>
-               );
-             })}
-           </div>
-        </div>
-
-        {/* Upcoming Tasks / Events List */}
-        <div>
-          <h2 className="text-lg font-bold text-[#E6EDF3] mb-4 px-2">Próximos Eventos</h2>
-          
-          <div className="space-y-3 px-1">
-            {upcomingEvents.length > 0 ? upcomingEvents.map(event => {
-              const eventDate = new Date(event.date);
-              const isToday = eventDate.getDate() === new Date().getDate() && eventDate.getMonth() === new Date().getMonth();
-              
-              return (
-                <div 
-                  key={event.id} 
-                  onClick={() => onSelectEvent(event.id)}
-                  className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 flex items-center gap-4 group hover:border-[#8B949E] transition-colors cursor-pointer"
-                >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
-                    event.category === 'CASAMIENTO' ? 'bg-[#1F6FEB]/20 text-[#1F6FEB]' :
-                    event.category === 'QUINCEANERA' ? 'bg-[#C8A951]/20 text-[#C8A951]' :
-                    'bg-[#3FB950]/20 text-[#3FB950]'
-                  }`}>
-                    {event.category === 'CASAMIENTO' ? '💍' : event.category === 'QUINCEANERA' ? '👑' : '🎉'}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-[#E6EDF3] font-medium truncate">{event.title}</h3>
-                    <div className="text-[#8B949E] text-sm flex items-center gap-2">
-                       <span>{new Date(event.date + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                      >
+                        {day}
+                        {!isSelected && hasEvents && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[#C8A951]" />}
+                      </button>
                     </div>
-                  </div>
-
-                  <div className="text-right shrink-0">
-                    <span className={`text-xs font-bold px-2 py-1 rounded border ${
-                      event.status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 text-[#3FB950] border-[#3FB950]/20' : 
-                      'bg-[#D29922]/10 text-[#D29922] border-[#D29922]/20'
-                    }`}>
-                      {event.status === 'CONFIRMADO' ? 'CONF' : 'PEND'}
-                    </span>
-                  </div>
-                </div>
-              );
-            }) : (
-              <div className="text-center py-8 text-[#8B949E]">
-                No hay eventos próximos registrados.
+                  );
+                })}
               </div>
-            )}
+            </div>
+
+            {/* Upcoming Tasks / Events List */}
+            <div>
+              <h2 className="text-lg font-bold text-[#E6EDF3] mb-4 px-2">Próximos Eventos</h2>
+
+              <div className="space-y-3 px-1">
+                {upcomingEvents.length > 0 ? upcomingEvents.map(event => {
+                  const eventDate = new Date(event.date);
+                  const isToday = eventDate.getDate() === new Date().getDate() && eventDate.getMonth() === new Date().getMonth();
+
+                  return (
+                    <div
+                      key={event.id}
+                      onClick={() => onSelectEvent(event.id)}
+                      className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 flex items-center gap-4 group hover:border-[#8B949E] transition-colors cursor-pointer"
+                    >
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${event.category === 'CASAMIENTO' ? 'bg-[#1F6FEB]/20 text-[#1F6FEB]' :
+                        event.category === 'QUINCEANERA' ? 'bg-[#E91E8C]/20 text-[#E91E8C]' :
+                          event.category === 'CUMPLEANOS' ? 'bg-[#C8A951]/20 text-[#C8A951]' :
+                            event.category === 'CORPORATIVO' ? 'bg-[#6B7280]/20 text-[#6B7280]' :
+                              'bg-[#8B5CF6]/20 text-[#8B5CF6]'
+                        }`}>
+                        {event.category === 'CASAMIENTO' ? '💍' : event.category === 'QUINCEANERA' ? '👑' : '🎉'}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[#E6EDF3] font-medium truncate">{event.title}</h3>
+                        <div className="text-[#8B949E] text-sm flex items-center gap-2">
+                          <span>{new Date(event.date + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className={`text-xs font-bold px-2 py-1 rounded border ${event.status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 text-[#3FB950] border-[#3FB950]/20' :
+                          event.status === 'SENADO' ? 'bg-[#C8A951]/10 text-[#C8A951] border-[#C8A951]/20' :
+                            event.status === 'CANCELADO' ? 'bg-[#F85149]/10 text-[#F85149] border-[#F85149]/20' :
+                              'bg-[#D29922]/10 text-[#D29922] border-[#D29922]/20'
+                          }`}>
+                          {event.status === 'CONFIRMADO' ? 'CONF' : event.status === 'SENADO' ? 'SEÑADO' : event.status === 'CANCELADO' ? 'CANC' : 'RES.PEND'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                }) : (
+                  <div className="text-center py-8 text-[#8B949E]">
+                    No hay eventos próximos registrados.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
         </>
       )}
     </div>
@@ -769,7 +802,7 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
 const CreateEventView = ({ onBack }: { onBack: () => void }) => {
   const [activeCategory, setActiveCategory] = useState<string>('TÉCNICA & SONIDO');
   const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
-  
+
   const categories = Array.from(new Set(CATALOG_DATA.map(item => item.category)));
 
   const toggleService = (item: ServiceItem) => {
@@ -782,176 +815,173 @@ const CreateEventView = ({ onBack }: { onBack: () => void }) => {
 
   return (
     <div className="p-4 lg:p-8 h-full flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 shrink-0 gap-4 lg:gap-0">
-            <div className="flex items-center gap-4">
-                <button onClick={onBack} className="text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1">
-                    <ChevronLeft size={20} /> Volver
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 shrink-0 gap-4 lg:gap-0">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1">
+            <ChevronLeft size={20} /> Volver
+          </button>
+          <div className="h-6 w-px bg-[#30363D]" />
+          <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Nuevo Evento</h1>
+        </div>
+        <button onClick={onBack} className="w-full lg:w-auto bg-[#C8A951] hover:bg-[#D4B96A] text-[#0D1117] px-6 py-2 rounded-lg font-bold transition-colors">
+          Crear Evento
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-hidden flex flex-col lg:grid lg:grid-cols-12 gap-8">
+        {/* Left Column: Form Data (Scrollable) */}
+        <div className="lg:col-span-5 overflow-y-auto pr-2 space-y-6 pb-20 lg:pb-0">
+          {/* Section 1: Datos del Evento */}
+          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+            <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Datos del Evento</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Nombre del evento</label>
+                <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Ej: Casamiento Pérez-Gómez" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Categoría</label>
+                <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
+                  <option>Casamiento</option>
+                  <option>Quinceañera</option>
+                  <option>Cumpleaños</option>
+                  <option>Corporativo</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Salón</label>
+                <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
+                  <option>Vicenzo</option>
+                  <option>Casita San Javier</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Fecha y Horario */}
+          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+            <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Fecha y Horario</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Fecha</label>
+                <input type="date" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Hora Inicio</label>
+                <input type="time" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Hora Fin</label>
+                <input type="time" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Invitados */}
+          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+            <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Invitados</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Adultos</label>
+                <input type="number" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="0" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Niños</label>
+                <input type="number" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="0" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Total Estimado</label>
+                <input type="number" disabled className="w-full bg-[#161B22] border border-[#30363D] rounded-lg px-3 py-2 text-[#8B949E] cursor-not-allowed" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Cliente */}
+          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+            <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Datos del Cliente</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Responsable Principal</label>
+                <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Nombre completo" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Teléfono</label>
+                <input type="tel" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="381..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Email</label>
+                <input type="email" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="cliente@email.com" />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 5: Observaciones */}
+          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+            <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Observaciones</h4>
+            <textarea className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none h-24" placeholder="Notas adicionales..."></textarea>
+          </div>
+        </div>
+
+        {/* Right Column: Services (Fixed/Scrollable) */}
+        <div className="lg:col-span-7 flex flex-col bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden h-[500px] lg:h-auto">
+          <div className="p-4 border-b border-[#30363D] bg-[#0D1117]">
+            <h3 className="text-[#E6EDF3] font-display font-semibold mb-4">Selección de Servicios</h3>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${activeCategory === cat
+                    ? 'bg-[#C8A951] text-[#0D1117]'
+                    : 'bg-[#30363D] text-[#8B949E] hover:text-[#E6EDF3]'
+                    }`}
+                >
+                  {cat}
                 </button>
-                <div className="h-6 w-px bg-[#30363D]" />
-                <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Nuevo Evento</h1>
+              ))}
             </div>
-            <button onClick={onBack} className="w-full lg:w-auto bg-[#C8A951] hover:bg-[#D4B96A] text-[#0D1117] px-6 py-2 rounded-lg font-bold transition-colors">
-                Crear Evento
-            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-2">
+            <div className="space-y-2">
+              {CATALOG_DATA.filter(item => item.category === activeCategory).map(item => {
+                const isSelected = selectedServices.some(s => s.id === item.id);
+                return (
+                  <div key={item.id}
+                    onClick={() => toggleService(item)}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between group ${isSelected
+                      ? 'bg-[#C8A951]/10 border-[#C8A951] shadow-[0_0_10px_rgba(200,169,81,0.1)]'
+                      : 'bg-[#0D1117] border-[#30363D] hover:border-[#8B949E]'
+                      }`}
+                  >
+                    <div>
+                      <div className={`font-medium ${isSelected ? 'text-[#C8A951]' : 'text-[#E6EDF3]'}`}>{item.name}</div>
+                      <div className="text-xs text-[#8B949E] mt-0.5">
+                        {item.priceArs ? formatCurrency(item.priceArs) : (item.priceUsd ? `USD ${item.priceUsd}` : 'Consultar')}
+                      </div>
+                    </div>
+                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#C8A951] border-[#C8A951]' : 'border-[#8B949E] group-hover:border-[#E6EDF3]'
+                      }`}>
+                      {isSelected && <CheckCircle size={14} className="text-[#0D1117]" />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Footer Summary */}
+          <div className="p-4 border-t border-[#30363D] bg-[#0D1117]">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-[#8B949E]">{selectedServices.length} servicios seleccionados</span>
+              <span className="text-[#E6EDF3] font-mono font-bold">
+                Total estimado: {formatCurrency(selectedServices.reduce((acc, curr) => acc + (curr.priceArs || 0), 0))}
+              </span>
+            </div>
+          </div>
         </div>
-
-        <div className="flex-1 overflow-hidden flex flex-col lg:grid lg:grid-cols-12 gap-8">
-            {/* Left Column: Form Data (Scrollable) */}
-            <div className="lg:col-span-5 overflow-y-auto pr-2 space-y-6 pb-20 lg:pb-0">
-                {/* Section 1: Datos del Evento */}
-                <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-                    <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Datos del Evento</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Nombre del evento</label>
-                            <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Ej: Casamiento Pérez-Gómez" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Categoría</label>
-                            <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
-                                <option>Casamiento</option>
-                                <option>Quinceañera</option>
-                                <option>Cumpleaños</option>
-                                <option>Corporativo</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Salón</label>
-                            <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
-                                <option>Vicenzo</option>
-                                <option>Casita San Javier</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Section 2: Fecha y Horario */}
-                <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-                    <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Fecha y Horario</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Fecha</label>
-                            <input type="date" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Hora Inicio</label>
-                            <input type="time" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Hora Fin</label>
-                            <input type="time" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Section 3: Invitados */}
-                <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-                    <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Invitados</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Adultos</label>
-                            <input type="number" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="0" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Niños</label>
-                            <input type="number" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="0" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Total Estimado</label>
-                            <input type="number" disabled className="w-full bg-[#161B22] border border-[#30363D] rounded-lg px-3 py-2 text-[#8B949E] cursor-not-allowed" placeholder="0" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Section 4: Cliente */}
-                <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-                    <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Datos del Cliente</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Responsable Principal</label>
-                            <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Nombre completo" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Teléfono</label>
-                            <input type="tel" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="381..." />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#8B949E] mb-1">Email</label>
-                            <input type="email" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="cliente@email.com" />
-                        </div>
-                    </div>
-                </div>
-
-                 {/* Section 5: Observaciones */}
-                <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-                    <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Observaciones</h4>
-                    <textarea className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none h-24" placeholder="Notas adicionales..."></textarea>
-                </div>
-            </div>
-
-            {/* Right Column: Services (Fixed/Scrollable) */}
-            <div className="lg:col-span-7 flex flex-col bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden h-[500px] lg:h-auto">
-                <div className="p-4 border-b border-[#30363D] bg-[#0D1117]">
-                    <h3 className="text-[#E6EDF3] font-display font-semibold mb-4">Selección de Servicios</h3>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setActiveCategory(cat)}
-                                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
-                                    activeCategory === cat 
-                                    ? 'bg-[#C8A951] text-[#0D1117]' 
-                                    : 'bg-[#30363D] text-[#8B949E] hover:text-[#E6EDF3]'
-                                }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto p-2">
-                    <div className="space-y-2">
-                        {CATALOG_DATA.filter(item => item.category === activeCategory).map(item => {
-                            const isSelected = selectedServices.some(s => s.id === item.id);
-                            return (
-                                <div key={item.id} 
-                                    onClick={() => toggleService(item)}
-                                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between group ${
-                                        isSelected 
-                                        ? 'bg-[#C8A951]/10 border-[#C8A951] shadow-[0_0_10px_rgba(200,169,81,0.1)]' 
-                                        : 'bg-[#0D1117] border-[#30363D] hover:border-[#8B949E]'
-                                    }`}
-                                >
-                                    <div>
-                                        <div className={`font-medium ${isSelected ? 'text-[#C8A951]' : 'text-[#E6EDF3]'}`}>{item.name}</div>
-                                        <div className="text-xs text-[#8B949E] mt-0.5">
-                                            {item.priceArs ? formatCurrency(item.priceArs) : (item.priceUsd ? `USD ${item.priceUsd}` : 'Consultar')}
-                                        </div>
-                                    </div>
-                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                                        isSelected ? 'bg-[#C8A951] border-[#C8A951]' : 'border-[#8B949E] group-hover:border-[#E6EDF3]'
-                                    }`}>
-                                        {isSelected && <CheckCircle size={14} className="text-[#0D1117]" />}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Footer Summary */}
-                <div className="p-4 border-t border-[#30363D] bg-[#0D1117]">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-[#8B949E]">{selectedServices.length} servicios seleccionados</span>
-                        <span className="text-[#E6EDF3] font-mono font-bold">
-                            Total estimado: {formatCurrency(selectedServices.reduce((acc, curr) => acc + (curr.priceArs || 0), 0))}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
   );
 };
@@ -974,9 +1004,15 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
       'RESERVADO_PENDIENTE': 'bg-[#D29922]/15 text-[#D29922] border-[#D29922]/20',
       'CANCELADO': 'bg-[#F85149]/15 text-[#F85149] border-[#F85149]/20',
     };
+    const labels: Record<EventStatus, string> = {
+      'CONFIRMADO': 'CONFIRMADO',
+      'SENADO': 'SEÑADO',
+      'RESERVADO_PENDIENTE': 'RESERVADO PENDIENTE',
+      'CANCELADO': 'CANCELADO',
+    };
     return (
       <span className={`px-2 py-0.5 rounded text-xs font-bold border ${styles[status]}`}>
-        {status.replace('_', ' ')}
+        {labels[status]}
       </span>
     );
   };
@@ -985,8 +1021,8 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
     <div className="p-4 lg:p-8 h-full flex flex-col">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4 lg:gap-0">
         <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Eventos — Vicenzo</h1>
-        {!isProduction && (
-          <button 
+        {!isProduction && user.role !== 'CATERING' && (
+          <button
             onClick={onCreateEvent}
             className="w-full lg:w-auto bg-[#1F6FEB] hover:bg-[#388BFD] text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
           >
@@ -999,9 +1035,9 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
       <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
         <div className="relative flex-1 w-full sm:w-auto max-w-none sm:max-w-md">
           <Search className="absolute left-3 top-2.5 text-[#8B949E] h-4 w-4" />
-          <input 
-            type="text" 
-            placeholder="Buscar evento..." 
+          <input
+            type="text"
+            placeholder="Buscar evento..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-[#161B22] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-[#C8A951]"
@@ -1009,7 +1045,7 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
         </div>
         <div className="relative w-full sm:w-auto min-w-[200px]">
           <Filter className="absolute left-3 top-2.5 text-[#8B949E] h-4 w-4" />
-          <select 
+          <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             className="w-full bg-[#161B22] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-10 pr-4 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
@@ -1018,6 +1054,7 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
             <option value="CONFIRMADO">Confirmado</option>
             <option value="SENADO">Señado</option>
             <option value="RESERVADO_PENDIENTE">Reservado Pendiente</option>
+            <option value="CANCELADO">Cancelado</option>
           </select>
           <ChevronDown className="absolute right-3 top-3 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
         </div>
@@ -1031,28 +1068,58 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
               <tr className="bg-[#0D1117] border-b border-[#30363D] text-[#8B949E] text-sm">
                 <th className="p-4 font-medium">Evento</th>
                 <th className="p-4 font-medium">Fecha</th>
-                <th className="p-4 font-medium">Categoría</th>
-                <th className="p-4 font-medium">Invitados</th>
-                <th className="p-4 font-medium">Estado</th>
-                {!isProduction && <th className="p-4 font-medium text-right">Saldo</th>}
+                {user.role === 'CATERING' ? (
+                  <>
+                    <th className="p-4 font-medium text-center">Adultos</th>
+                    <th className="p-4 font-medium text-center">Mozos</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="p-4 font-medium">Categoría</th>
+                    <th className="p-4 font-medium text-center">Invitados</th>
+                  </>
+                )}
+                <th className="p-4 font-medium text-center">Estado</th>
+                {!isProduction && user.role !== 'CATERING' && <th className="p-4 font-medium text-right">Balance</th>}
                 <th className="p-4 font-medium text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#30363D]">
               {filteredEvents.map(event => (
-                <tr 
-                  key={event.id} 
+                <tr
+                  key={event.id}
                   onClick={() => onSelectEvent(event.id)}
                   className="hover:bg-[#30363D]/20 cursor-pointer transition-colors group"
                 >
                   <td className="p-4 font-medium text-[#E6EDF3]">{event.title}</td>
                   <td className="p-4 text-[#8B949E] tabular-nums">{new Date(event.date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })}</td>
-                  <td className="p-4 text-[#E6EDF3] text-sm">{event.category}</td>
-                  <td className="p-4 text-[#E6EDF3] tabular-nums">{event.guests}</td>
-                  <td className="p-4">{getStatusBadge(event.status)}</td>
-                  {!isProduction && (
-                    <td className={`p-4 text-right tabular-nums font-medium ${event.balance > 0 ? 'text-[#F85149]' : 'text-[#3FB950]'}`}>
-                      {event.balance > 0 ? formatCurrency(event.balance) : 'Saldado'}
+                  {user.role === 'CATERING' ? (
+                    <>
+                      <td className="p-4 text-[#E6EDF3] text-center tabular-nums">{event.guests}</td>
+                      <td className="p-4 text-[#E6EDF3] text-center tabular-nums">8</td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="p-4 text-[#E6EDF3] text-sm">{event.category}</td>
+                      <td className="p-4 text-[#E6EDF3] text-center tabular-nums">{event.guests}</td>
+                    </>
+                  )}
+                  <td className="p-4 text-center">{getStatusBadge(event.status)}</td>
+                  {!isProduction && user.role !== 'CATERING' && (
+                    <td className={`p-4 text-right tabular-nums font-medium ${event.balance > 0 ? 'text-[#F85149]' : event.balance < 0 ? 'text-[#3FB950]' : 'text-[#8B949E]'}`}>
+                      {event.balance > 0 ? (
+                        <div className="flex flex-col items-end">
+                          <span className="text-[10px] uppercase opacity-70 leading-none mb-0.5">Debe</span>
+                          <span>{formatCurrency(event.balance)}</span>
+                        </div>
+                      ) : event.balance < 0 ? (
+                        <div className="flex flex-col items-end">
+                          <span className="text-[10px] uppercase opacity-70 leading-none mb-0.5">A cuenta</span>
+                          <span>{formatCurrency(Math.abs(event.balance))}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[#8B949E]">—</span>
+                      )}
                     </td>
                   )}
                   <td className="p-4 text-center">
@@ -1070,7 +1137,7 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
       {/* Mobile Card View */}
       <div className="lg:hidden space-y-4 pb-20">
         {filteredEvents.map(event => (
-          <div 
+          <div
             key={event.id}
             onClick={() => onSelectEvent(event.id)}
             className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 cursor-pointer active:bg-[#30363D]/20"
@@ -1079,7 +1146,7 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
               <div className="font-medium text-[#E6EDF3] text-lg leading-tight pr-2">{event.title}</div>
               <div className="shrink-0">{getStatusBadge(event.status)}</div>
             </div>
-            
+
             <div className="space-y-2 text-sm text-[#8B949E]">
               <div className="flex items-center gap-2">
                 <Calendar size={14} />
@@ -1088,20 +1155,22 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Users size={14} />
-                  <span>{event.guests} inv.</span>
+                  <span>{user.role === 'CATERING' ? `${event.guests} adultos · 8 mozos` : `${event.guests} inv.`}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Tag size={14} />
-                  <span>{event.category}</span>
-                </div>
+                {user.role !== 'CATERING' && (
+                  <div className="flex items-center gap-2">
+                    <Tag size={14} />
+                    <span>{event.category}</span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {!isProduction && (
+            {!isProduction && user.role !== 'CATERING' && event.balance !== 0 && (
               <div className="mt-3 pt-3 border-t border-[#30363D] flex justify-between items-center">
-                <span className="text-sm text-[#8B949E]">Saldo pendiente:</span>
+                <span className="text-sm text-[#8B949E]">{event.balance > 0 ? 'Debe:' : 'A cuenta:'}</span>
                 <span className={`font-medium font-mono ${event.balance > 0 ? 'text-[#F85149]' : 'text-[#3FB950]'}`}>
-                  {event.balance > 0 ? formatCurrency(event.balance) : 'Saldado'}
+                  {formatCurrency(Math.abs(event.balance))}
                 </span>
               </div>
             )}
@@ -1114,12 +1183,14 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
 const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: () => void, user: User }) => {
   const [isPlanillaOpen, setIsPlanillaOpen] = useState(false);
   const [status, setStatus] = useState<EventStatus>('SENADO');
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   const isProduction = user.role === 'PRODUCCION' || user.role === 'TIO_FRANCO';
 
   // Mock specific data for this view as requested
   const eventData = {
     title: "Quinceañera Valentina Suárez",
-    date: "Viernes 07 de marzo de 2025",
+    date: "Viernes 14 de marzo de 2026", // Updated to be near current simulated time (Mar 10, 2026)
+    isoDate: "2026-03-14",
     time: "21:00 hs — 04:00 hs",
     salon: "Vicenzo",
     category: "QUINCEANERA",
@@ -1139,8 +1210,8 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       after: 12
     },
     senas: [
-      { label: "Alquiler del Salón / Seña", date: "15/01/2025", status: "PAGADA" },
-      { label: "Música, Luces y Pantallas / Seña", date: "22/01/2025", status: "PAGADA" }
+      { label: "Alquiler del Salón / Seña", date: "15/01/2026", status: "PAGADA" },
+      { label: "Música, Luces y Pantallas / Seña", date: "22/01/2026", status: "PENDIENTE" }
     ],
     financial: {
       total: 18200000,
@@ -1150,11 +1221,13 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       account: 10250000
     },
     payments: [
-      { date: "15/01/2025", desc: "Seña Alquiler", amount: 2000000, method: "Efectivo", user: "Franco" },
-      { date: "22/01/2025", desc: "Seña Música/Luces", amount: 1150000, method: "Transferencia", user: "Julia" },
-      { date: "10/02/2025", desc: "A cuenta — Menú Jóvenes", amount: 5000000, method: "Transferencia", user: "Julia" },
-      { date: "25/02/2025", desc: "A cuenta — Pack Premium", amount: 400000, method: "Efectivo", user: "Franco" },
-      { date: "01/03/2025", desc: "A cuenta — Mobiliario", amount: 875000, method: "Transferencia", user: "Julia" },
+      { date: "15/01/2026", desc: "Seña Alquiler", amount: 2000000, method: "Efectivo", user: "Franco" },
+      { date: "22/01/2026", desc: "Seña Música/Luces", amount: 1150000, method: "Transferencia", user: "Julia" },
+      { date: "10/02/2026", desc: "A cuenta — Menú Jóvenes", amount: 5000000, method: "Transferencia", user: "Julia" },
+      { date: "25/02/2026", desc: "A cuenta — Pack Premium", amount: 400000, method: "Efectivo", user: "Franco" },
+      { date: "01/03/2026", desc: "Vuelto de tarjeta - Crédito cliente", amount: 40000, method: "SISTEMA", user: "Admin", isMovement: true, movementType: 'A_CUENTA' },
+      { date: "05/03/2026", desc: "Diferencia de cubiertos - Deuda", amount: 150000, method: "SISTEMA", user: "Julia", isMovement: true, movementType: 'DEBIENDO' },
+      { date: "08/03/2026", desc: "A cuenta — Mobiliario", amount: 875000, method: "Transferencia", user: "Julia" },
     ],
     observations: [
       "1 mesa principal para 7 personas (quinceañera + corte).",
@@ -1217,17 +1290,62 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
     {
       category: "PERSONAL",
       items: [
-        { name: "Mozos", qty: "2u", price: 52000, status: "PENDIENTE", unitPrice: true, alert: "Se requieren 4 mozos (3 fijos + 1 por 100 jóvenes). Solo se cargaron 2." },
+        { name: "Mozos", qty: "2u", price: 52000, status: "PENDIENTE", unitPrice: true, required: 4 },
       ]
     }
   ];
 
+  const alerts = useMemo(() => {
+    const list: { type: 'RED' | 'YELLOW', text: string }[] = [];
+
+    // Señas no pagadas
+    eventData.senas.forEach(sena => {
+      if (sena.status !== 'PAGADA') {
+        list.push({ type: 'RED', text: `Seña de ${sena.label} pendiente de pago` });
+      }
+    });
+
+    // Invitados confirmados < mínimo contratado
+    if (eventData.guests.confirmed < eventData.guests.min) {
+      list.push({ type: 'YELLOW', text: `Invitados confirmados por debajo del mínimo (${eventData.guests.confirmed} vs ${eventData.guests.min})` });
+    }
+
+    // Mozos cargados < mozos requeridos
+    const mozosItem: any = services.find(c => c.category === 'PERSONAL')?.items.find(i => i.name === 'Mozos');
+    if (mozosItem && typeof mozosItem.required === 'number') {
+      const loaded = parseInt(mozosItem.qty);
+      if (loaded < mozosItem.required) {
+        list.push({ type: 'RED', text: `Mozos insuficientes: se cargaron ${loaded}, se requieren ${mozosItem.required}` });
+      }
+    }
+
+    // Evento en menos de 48hs y saldo pendiente
+    const eventTime = new Date(eventData.isoDate + 'T12:00:00').getTime();
+    const now = new Date().getTime();
+    const hoursRemaining = (eventTime - now) / (1000 * 60 * 60);
+    if (hoursRemaining < 48 && eventData.financial.pending > 0) {
+      list.push({ type: 'RED', text: "Evento próximo con saldo sin cancelar" });
+    }
+
+    return list;
+  }, [eventData, services]);
+
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
+
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     type: 'A_CUENTA', // SENA, A_CUENTA, SALDO, ADICIONAL
     method: 'EFECTIVO',
     notes: ''
+  });
+
+  const [movementForm, setMovementForm] = useState({
+    type: 'A_CUENTA',
+    amount: '',
+    currency: 'ARS',
+    description: '',
+    date: new Date().toISOString().split('T')[0]
   });
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
@@ -1236,6 +1354,19 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
     console.log("Payment submitted:", paymentForm);
     setIsPaymentModalOpen(false);
     setPaymentForm({ amount: '', type: 'A_CUENTA', method: 'EFECTIVO', notes: '' });
+  };
+
+  const handleMovementSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Movement submitted:", movementForm);
+    setIsMovementModalOpen(false);
+    setMovementForm({
+      type: 'A_CUENTA',
+      amount: '',
+      currency: 'ARS',
+      description: '',
+      date: new Date().toISOString().split('T')[0]
+    });
   };
 
   const paymentTypes = [
@@ -1270,62 +1401,85 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {[
-            { title: "MOBILIARIO", items: [
-              { name: "Mesas cuadradas", val: "SÍ", cant: "6" },
-              { name: "Sillas metálicas", val: "SÍ", cant: "58" },
-              { name: "Fundas blancas", val: "SÍ", cant: "58" },
-              { name: "Living (juegos)", val: "SÍ", cant: "5" },
-              { name: "Mesas altas + banquetas", val: "SÍ", cant: "3" },
-            ]},
-            { title: "TÉCNICA Y OPCIONALES", items: [
-              { name: "Pack Luces Premium", val: "SÍ", cant: "" },
-              { name: "Sonido exterior", val: "SÍ", cant: "" },
-              { name: "Fuegos — Fontanas escalera", val: "SÍ", cant: "7" },
-              { name: "Fuegos — Fontanas pista", val: "SÍ", cant: "8" },
-              { name: "Cabina fotográfica", val: "SÍ", cant: "" },
-              { name: "Alas LED", val: "SÍ", cant: "" },
-              { name: "Grupo electrógeno", val: "SÍ", cant: "" },
-            ]},
-            { title: "CATERING", items: [
-              { name: "Menú Jóvenes", val: "SÍ", cant: "155" },
-              { name: "  Kiosco 1: Americano", val: "", cant: "" },
-              { name: "  Kiosco 2: Italiano", val: "", cant: "" },
-              { name: "  Kiosco 3: Mexicano", val: "", cant: "" },
-              { name: "Barra de helados", val: "SÍ", cant: "155" },
-              { name: "Barra de tragos", val: "SÍ", cant: "" },
-              { name: "Kiosco tipo KFC", val: "NO", cant: "" },
-              { name: "Niños", val: "SÍ", cant: "4" },
-              { name: "Después de 1 AM", val: "SÍ", cant: "12" },
-            ]},
+            {
+              title: "MOBILIARIO", items: [
+                { name: "Mesas cuadradas", val: "SÍ", cant: "6" },
+                { name: "Sillas metálicas", val: "SÍ", cant: "58" },
+                { name: "Fundas blancas", val: "SÍ", cant: "58" },
+                { name: "Living (juegos)", val: "SÍ", cant: "5" },
+                { name: "Mesas altas + banquetas", val: "SÍ", cant: "3" },
+              ]
+            },
+            {
+              title: "TÉCNICA Y OPCIONALES", items: [
+                { name: "Pack Luces Premium", val: "SÍ", cant: "" },
+                { name: "Sonido exterior", val: "SÍ", cant: "" },
+                { name: "Fuegos — Fontanas escalera", val: "SÍ", cant: "7" },
+                { name: "Fuegos — Fontanas pista", val: "SÍ", cant: "8" },
+                { name: "Cabina fotográfica", val: "SÍ", cant: "" },
+                { name: "Alas LED", val: "SÍ", cant: "" },
+                { name: "Grupo electrógeno", val: "SÍ", cant: "" },
+              ]
+            },
+            {
+              title: "CATERING", items: [
+                { name: "Menú Jóvenes", val: "SÍ", cant: "155" },
+                { name: "  Kiosco 1: Americano", val: "", cant: "" },
+                { name: "  Kiosco 2: Italiano", val: "", cant: "" },
+                { name: "  Kiosco 3: Mexicano", val: "", cant: "" },
+                { name: "Barra de helados", val: "SÍ", cant: "155" },
+                { name: "Barra de tragos", val: "SÍ", cant: "" },
+                { name: "Kiosco tipo KFC", val: "NO", cant: "" },
+                { name: "Niños", val: "SÍ", cant: "4" },
+                { name: "Después de 1 AM", val: "SÍ", cant: "12" },
+              ]
+            },
           ].map((section, idx) => (
-            <div key={idx}>
-              <div className="flex border-b border-black font-bold mb-2">
+            <div key={idx} className="border border-black overflow-hidden">
+              <div className="flex bg-[#0D1117] text-white print:bg-white print:text-black border-b border-black font-bold p-2 sticky top-0 md:top-[-1px] z-10">
                 <span className="flex-1">{section.title}</span>
                 <span className="w-16 text-center">SÍ/NO</span>
                 <span className="w-16 text-center">CANT.</span>
               </div>
-              {section.items.map((item, i) => (
-                <div key={i} className="flex py-1">
-                  <span className="flex-1">{item.name}</span>
-                  <span className="w-16 text-center">{item.val}</span>
-                  <span className="w-16 text-center">{item.cant}</span>
-                </div>
-              ))}
+              <div className="divide-y divide-black/10">
+                {section.items.map((item, i) => (
+                  <div key={i} className={`flex py-2 px-2 items-center ${i % 2 !== 0 ? 'bg-gray-50' : 'bg-white'} print:bg-white`}>
+                    <span className="flex-1">{item.name}</span>
+                    <span className={`w-16 text-center font-bold ${item.val === 'SÍ' ? 'text-green-600 print:text-black' :
+                      item.val === 'NO' ? 'text-red-600 print:text-black' : ''
+                      }`}>
+                      {item.val}
+                    </span>
+                    <span className="w-16 text-center">{item.cant}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
 
-          <div>
-            <div className="border-b border-black font-bold mb-2">PERSONAL</div>
-            <p>Mozos: 2 asignados ⚠️ (se recomiendan 4)</p>
+          <div className="border border-black overflow-hidden">
+            <div className="bg-[#0D1117] text-white print:bg-white print:text-black border-b border-black font-bold p-2 sticky top-0 md:top-[-1px] z-10 uppercase">
+              PERSONAL
+            </div>
+            <div className="p-4 bg-white">
+              <p className="flex items-center gap-2">
+                <span className="font-bold">Mozos:</span>
+                2 asignados <span className="text-red-600 font-bold">⚠️ (se recomiendan 4)</span>
+              </p>
+            </div>
           </div>
 
-          <div>
-            <div className="border-b border-black font-bold mb-2">OBSERVACIONES</div>
-            <ul className="list-disc pl-5">
-              {eventData.observations.map((obs, i) => <li key={i}>{obs}</li>)}
-            </ul>
+          <div className="border border-black overflow-hidden">
+            <div className="bg-[#0D1117] text-white print:bg-white print:text-black border-b border-black font-bold p-2 sticky top-0 md:top-[-1px] z-10 uppercase">
+              OBSERVACIONES
+            </div>
+            <div className="p-4 bg-white">
+              <ul className="list-disc pl-5 space-y-1">
+                {eventData.observations.map((obs, i) => <li key={i}>{obs}</li>)}
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -1348,264 +1502,405 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
             <ChevronLeft size={20} /> Volver
           </button>
           <div className="relative">
-            <select 
+            <select
               value={status}
               onChange={(e) => setStatus(e.target.value as EventStatus)}
-              className="bg-[#161B22] border border-[#30363D] text-[#C8A951] font-bold rounded-lg pl-3 pr-8 py-1.5 text-sm appearance-none focus:outline-none focus:border-[#C8A951]"
+              className={`border font-bold rounded-lg pl-3 pr-8 py-1.5 text-sm appearance-none focus:outline-none ${status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 border-[#3FB950]/30 text-[#3FB950] focus:border-[#3FB950]' :
+                status === 'SENADO' ? 'bg-[#C8A951]/10 border-[#C8A951]/30 text-[#C8A951] focus:border-[#C8A951]' :
+                  status === 'RESERVADO_PENDIENTE' ? 'bg-[#D29922]/10 border-[#D29922]/30 text-[#D29922] focus:border-[#D29922]' :
+                    'bg-[#F85149]/10 border-[#F85149]/30 text-[#F85149] focus:border-[#F85149]'
+                }`}
             >
               <option value="CONFIRMADO">CONFIRMADO</option>
               <option value="SENADO">SEÑADO</option>
-              <option value="RESERVADO_PENDIENTE">RESERVADO</option>
+              <option value="RESERVADO_PENDIENTE">RESERVADO PENDIENTE</option>
               <option value="CANCELADO">CANCELADO</option>
             </select>
-            <ChevronDown className="absolute right-2 top-2.5 h-3 w-3 text-[#C8A951] pointer-events-none" />
+            <ChevronDown className={`absolute right-2 top-2.5 h-3 w-3 pointer-events-none ${status === 'CONFIRMADO' ? 'text-[#3FB950]' :
+              status === 'SENADO' ? 'text-[#C8A951]' :
+                status === 'RESERVADO_PENDIENTE' ? 'text-[#D29922]' :
+                  'text-[#F85149]'
+              }`} />
           </div>
         </div>
 
         {/* Desktop Header Layout */}
         <div className="hidden lg:flex items-center justify-between">
-           <div className="flex items-center gap-4">
-              <button onClick={onBack} className="text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1">
-                <ChevronLeft size={20} /> Volver
-              </button>
-              <div className="h-6 w-px bg-[#30363D]" />
-              <div>
-                <div className="flex items-center gap-3">
-                  <span className="bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide">
-                    15 AÑOS
-                  </span>
-                  <h1 className="text-xl font-display font-bold text-[#E6EDF3]">{eventData.title}</h1>
-                </div>
-                <div className="text-[#8B949E] text-sm mt-1 flex items-center gap-3">
-                  <span className="flex items-center gap-1"><Calendar size={14} /> {eventData.date}</span>
-                  <span className="flex items-center gap-1"><Clock size={14} /> {eventData.time}</span>
-                  <span className="flex items-center gap-1"><MapPin size={14} /> Salón: {eventData.salon}</span>
-                </div>
+          <div className="flex items-center gap-4">
+            <button onClick={onBack} className="text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1">
+              <ChevronLeft size={20} /> Volver
+            </button>
+            <div className="h-6 w-px bg-[#30363D]" />
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide">
+                  15 AÑOS
+                </span>
+                <h1 className="text-xl font-display font-bold text-[#E6EDF3]">{eventData.title}</h1>
               </div>
-           </div>
-           <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setIsPlanillaOpen(true)}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#161B22] border border-[#30363D] hover:bg-[#30363D] text-[#E6EDF3] rounded-lg transition-colors"
+              <div className="text-[#8B949E] text-sm mt-1 flex items-center gap-3">
+                <span className="flex items-center gap-1"><Calendar size={14} /> {eventData.date}</span>
+                <span className="flex items-center gap-1"><Clock size={14} /> {eventData.time}</span>
+                <span className="flex items-center gap-1"><MapPin size={14} /> Salón: {eventData.salon}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsPlanillaOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-[#161B22] border border-[#30363D] hover:bg-[#30363D] text-[#E6EDF3] rounded-lg transition-colors"
+            >
+              <Printer size={18} />
+              <span>Ver Planilla Operativa</span>
+            </button>
+            {!isProduction && (
+              <button
+                onClick={() => setIsPaymentModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#3FB950] hover:bg-[#2ea043] text-white rounded-lg font-bold transition-colors"
               >
-                <Printer size={18} />
-                <span>Ver Planilla Operativa</span>
+                <DollarSign size={18} />
+                <span>Registrar Pago</span>
               </button>
-              {!isProduction && (
-                <button 
-                  onClick={() => setIsPaymentModalOpen(true)}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-[#3FB950] hover:bg-[#2ea043] text-white rounded-lg font-bold transition-colors"
-                >
-                  <DollarSign size={18} />
-                  <span>Registrar Pago</span>
-                </button>
-              )}
+            )}
+            {user.role !== 'CATERING' && (
               <div className="relative">
-                <select 
+                <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as EventStatus)}
-                  className="bg-[#161B22] border border-[#30363D] text-[#C8A951] font-bold rounded-lg pl-4 pr-10 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
+                  className={`border font-bold rounded-lg pl-4 pr-10 py-2 appearance-none focus:outline-none ${status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 border-[#3FB950]/30 text-[#3FB950] focus:border-[#3FB950]' :
+                    status === 'SENADO' ? 'bg-[#C8A951]/10 border-[#C8A951]/30 text-[#C8A951] focus:border-[#C8A951]' :
+                      status === 'RESERVADO_PENDIENTE' ? 'bg-[#D29922]/10 border-[#D29922]/30 text-[#D29922] focus:border-[#D29922]' :
+                        'bg-[#F85149]/10 border-[#F85149]/30 text-[#F85149] focus:border-[#F85149]'
+                    }`}
                 >
                   <option value="CONFIRMADO">CONFIRMADO</option>
                   <option value="SENADO">SEÑADO</option>
-                  <option value="RESERVADO_PENDIENTE">RESERVADO</option>
+                  <option value="RESERVADO_PENDIENTE">RESERVADO PENDIENTE</option>
                   <option value="CANCELADO">CANCELADO</option>
                 </select>
-                <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#C8A951] pointer-events-none" />
+                <ChevronDown className={`absolute right-3 top-3 h-4 w-4 pointer-events-none ${status === 'CONFIRMADO' ? 'text-[#3FB950]' :
+                  status === 'SENADO' ? 'text-[#C8A951]' :
+                    status === 'RESERVADO_PENDIENTE' ? 'text-[#D29922]' :
+                      'text-[#F85149]'
+                  }`} />
               </div>
-           </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile Content Header */}
-        <div className="lg:hidden space-y-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30 px-1.5 py-0.5 rounded-[4px] text-[10px] font-bold uppercase tracking-wide">
-                15 AÑOS
+        <div className="lg:hidden space-y-4">
+          <div className="bg-[#161B22] p-4 rounded-2xl border border-[#30363D] shadow-sm">
+            <div className="flex justify-between items-start mb-3">
+              <span className="bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">
+                {eventData.category}
               </span>
+              <div className="flex items-center gap-1 text-[10px] text-[#8B949E] uppercase font-bold tracking-widest">
+                <MapPin size={10} className="text-[#C8A951]" /> {eventData.salon}
+              </div>
             </div>
-            <h1 className="text-lg font-display font-bold text-[#E6EDF3] leading-tight">{eventData.title}</h1>
-          </div>
-          
-          <div className="text-[#8B949E] text-xs flex flex-wrap gap-x-4 gap-y-1">
-            <span className="flex items-center gap-1"><Calendar size={12} /> {eventData.date}</span>
-            <span className="flex items-center gap-1"><Clock size={12} /> {eventData.time}</span>
-            <span className="flex items-center gap-1"><MapPin size={12} /> {eventData.salon}</span>
+
+            <h1 className="text-xl font-display font-bold text-[#E6EDF3] leading-tight mb-4">{eventData.title}</h1>
+
+            <div className="grid grid-cols-1 gap-2.5">
+              <div className="flex items-center gap-3 text-[#E6EDF3] text-sm bg-[#0D1117]/50 p-2 rounded-lg border border-[#30363D]/50">
+                <Calendar size={16} className="text-[#C8A951]" />
+                <span>{eventData.date}</span>
+              </div>
+              <div className="flex items-center gap-3 text-[#E6EDF3] text-sm bg-[#0D1117]/50 p-2 rounded-lg border border-[#30363D]/50">
+                <Clock size={16} className="text-[#C8A951]" />
+                <span>{eventData.time}</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex gap-3 pt-1">
-            <button 
+          {/* Mobile Main Actions */}
+          <div className="grid grid-cols-12 gap-2">
+            <button
               onClick={() => setIsPlanillaOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#161B22] border border-[#30363D] hover:bg-[#30363D] text-[#E6EDF3] rounded-lg text-sm transition-colors"
+              className="col-span-4 flex flex-col items-center justify-center gap-1.5 p-3 bg-[#161B22] border border-[#30363D] active:bg-[#30363D] text-[#E6EDF3] rounded-xl transition-all"
             >
-              <Printer size={16} />
-              Planilla
+              <Printer size={18} className="text-[#8B949E]" />
+              <span className="text-[10px] font-bold uppercase">Planilla</span>
             </button>
-            {!isProduction && (
-              <button 
-                onClick={() => setIsPaymentModalOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#3FB950] hover:bg-[#2ea043] text-white rounded-lg font-bold text-sm transition-colors"
-              >
-                <DollarSign size={16} />
-                Pago
-              </button>
-            )}
+            <button
+              onClick={() => setIsPaymentModalOpen(true)}
+              className="col-span-6 flex items-center justify-center gap-2 p-3 bg-[#3FB950] active:bg-[#2ea043] text-white rounded-xl font-bold transition-all shadow-lg shadow-[#3FB950]/10"
+            >
+              <DollarSign size={20} />
+              <span>PAGO</span>
+            </button>
+            <button
+              onClick={() => setIsMovementModalOpen(true)}
+              className="col-span-2 flex items-center justify-center p-3 bg-[#161B22] border border-[#30363D] active:bg-[#30363D] text-[#E6EDF3] rounded-xl transition-all"
+              title="Movimiento de dinero"
+            >
+              <Scale size={20} className="text-[#8B949E]" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Content Grid */}
-      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 pb-20 lg:pb-0">
-        
-        {/* Left Column */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Client Data */}
-          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-            <h3 className="text-[#E6EDF3] font-display font-semibold mb-4 flex items-center gap-2">
-              <Users size={18} className="text-[#C8A951]" /> Datos del cliente
-            </h3>
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="block text-[#8B949E] text-xs">Responsables</span>
-                <div className="text-[#E6EDF3]">{eventData.client.resp1}</div>
-                <div className="text-[#E6EDF3]">{eventData.client.resp2}</div>
-              </div>
-              <div>
-                <span className="block text-[#8B949E] text-xs">Dirección</span>
-                <div className="text-[#E6EDF3]">{eventData.client.address}</div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="block text-[#8B949E] text-xs">DNI</span>
-                  <div className="text-[#E6EDF3]">{eventData.client.dni}</div>
-                </div>
-                <div>
-                  <span className="block text-[#8B949E] text-xs">Teléfonos</span>
-                  <div className="text-[#E6EDF3]">{eventData.client.phone}</div>
-                </div>
-              </div>
-              <div>
-                <span className="block text-[#8B949E] text-xs">Colegio</span>
-                <div className="text-[#E6EDF3]">{eventData.client.school}</div>
-              </div>
-              <div>
-                <span className="block text-[#8B949E] text-xs">Decorador</span>
-                <div className="text-[#E6EDF3]">{eventData.client.decorator}</div>
-              </div>
-            </div>
+      {/* Tabs Bar & Financial Summary */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-6 border-b border-[#30363D] pb-6">
+        <div className="w-full md:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+            {[
+              { id: 'ALERTS', label: 'Alertas', icon: AlertTriangle, color: '#F85149' },
+              { id: 'CLIENT', label: 'Datos', icon: Users, color: '#C8A951' },
+              { id: 'GUESTS', label: 'Invitados', icon: Users, color: '#C8A951' },
+              { id: 'PAYMENTS', label: 'Pagos', icon: CreditCard, color: '#C8A951' },
+              { id: 'OBS', label: 'Obs.', icon: FileText, color: '#C8A951' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(activeTab === tab.id ? null : tab.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all border ${activeTab === tab.id
+                  ? 'bg-[#C8A951] border-[#C8A951] text-[#0D1117] shadow-lg shadow-[#C8A951]/10'
+                  : 'bg-[#161B22] border-[#30363D] text-[#8B949E] hover:border-[#8B949E]'
+                  }`}
+              >
+                <tab.icon size={14} className={activeTab === tab.id ? 'text-[#0D1117]' : ''} style={activeTab === tab.id ? {} : { color: tab.color }} />
+                {tab.label}
+              </button>
+            ))}
           </div>
-
-          {/* Guests */}
-          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-            <h3 className="text-[#E6EDF3] font-display font-semibold mb-4 flex items-center gap-2">
-              <Users size={18} className="text-[#C8A951]" /> Invitados y mínimos
-            </h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[#8B949E]">Mínimo contratado:</span>
-                <span className="text-[#E6EDF3] font-mono">{eventData.guests.min}</span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-[#D29922]/10 border-l-2 border-[#D29922] rounded-r">
-                <span className="text-[#E6EDF3]">Confirmados:</span>
-                <span className="text-[#E6EDF3] font-bold font-mono">{eventData.guests.confirmed}</span>
-              </div>
-              <p className="text-xs text-[#D29922] mt-1">⚠️ Los invitados confirmados están por debajo del mínimo contratado</p>
-              
-              <div className="pt-2 border-t border-[#30363D] flex justify-between">
-                <span className="text-[#8B949E]">Niños (3-8 años):</span>
-                <span className="text-[#E6EDF3] font-mono">{eventData.guests.kids}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#8B949E]">Después de 1 AM:</span>
-                <span className="text-[#E6EDF3] font-mono">{eventData.guests.after}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Señas Status */}
-          {!isProduction && (
-            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-              <h3 className="text-[#E6EDF3] font-display font-semibold mb-4 flex items-center gap-2">
-                <CheckCircle size={18} className="text-[#3FB950]" /> Estado de señas
-              </h3>
-              <div className="space-y-3">
-                {eventData.senas.map((sena, i) => (
-                  <div key={i} className="bg-[#3FB950]/10 border border-[#3FB950]/20 rounded p-2 flex justify-between items-center">
-                    <div>
-                      <div className="text-[#3FB950] font-bold text-xs">✅ {sena.status}</div>
-                      <div className="text-[#E6EDF3] text-sm">{sena.label}</div>
-                    </div>
-                    <div className="text-[#8B949E] text-xs">{sena.date}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Center Column - Services */}
-        <div className={`${isProduction ? 'lg:col-span-8' : 'lg:col-span-5'} space-y-6`}>
-          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+        {!isProduction && (
+          <div className="w-full md:w-auto">
+            <div className="bg-[#0D1117] border border-[#3FB950]/30 border-l-4 border-l-[#3FB950] rounded-2xl px-5 py-3 shadow-lg flex justify-between items-center md:block">
+              <div className="text-[#8B949E] text-[10px] font-bold uppercase tracking-widest mb-1">TOTAL COBRADO</div>
+              <div className="text-2xl font-display font-bold text-[#3FB950] font-mono">
+                {formatCurrency(eventData.financial.collected)}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Tab Panel Overlay/Content */}
+      {
+        activeTab && (
+          <div className="mb-6 bg-[#161B22] border border-[#30363D] rounded-xl p-6 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-200">
+            <div className="flex justify-between items-center mb-4 border-b border-[#30363D] pb-3">
+              <h3 className="text-lg font-display font-bold text-[#E6EDF3] flex items-center gap-2">
+                {activeTab === 'ALERTS' && <><AlertTriangle className="text-[#F85149]" /> Alertas y Estado de Señas</>}
+                {activeTab === 'CLIENT' && <><Users className="text-[#C8A951]" /> Datos del Cliente</>}
+                {activeTab === 'GUESTS' && <><Users className="text-[#C8A951]" /> Invitados y Mínimos</>}
+                {activeTab === 'PAYMENTS' && <><CreditCard className="text-[#C8A951]" /> Historial de Pagos</>}
+                {activeTab === 'OBS' && <><FileText className="text-[#C8A951]" /> Observaciones</>}
+              </h3>
+              <button onClick={() => setActiveTab(null)} className="text-[#8B949E] hover:text-[#E6EDF3]">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto">
+              {activeTab === 'ALERTS' && (
+                <div className="space-y-4">
+                  {alerts.length > 0 ? (
+                    alerts.map((alert, i) => (
+                      <div key={i} className={`p-4 rounded-lg border flex items-center gap-3 ${alert.type === 'RED' ? 'bg-[#F85149]/10 border-[#F85149]/30 text-[#E6EDF3]' : 'bg-[#D29922]/10 border-[#D29922]/30 text-[#E6EDF3]'
+                        }`}>
+                        <AlertTriangle size={20} className={alert.type === 'RED' ? 'text-[#F85149]' : 'text-[#D29922]'} />
+                        <span className="font-medium">{alert.text}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center bg-[#3FB950]/5 border border-[#3FB950]/20 rounded-xl">
+                      <CheckCircle size={32} className="text-[#3FB950] mx-auto mb-3" />
+                      <span className="text-[#3FB950] font-bold">✅ Sin alertas para este evento</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'CLIENT' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                  <div className="space-y-4">
+                    <div>
+                      <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">Responsables</span>
+                      <div className="text-[#E6EDF3] text-base">{eventData.client.resp1}</div>
+                      <div className="text-[#E6EDF3] text-base">{eventData.client.resp2}</div>
+                    </div>
+                    <div>
+                      <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">Dirección</span>
+                      <div className="text-[#E6EDF3] text-base">{eventData.client.address}</div>
+                    </div>
+                    <div>
+                      <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">Colegio</span>
+                      <div className="text-[#E6EDF3] text-base">{eventData.client.school}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">DNI</span>
+                        <div className="text-[#E6EDF3] text-base font-mono">{eventData.client.dni}</div>
+                      </div>
+                      <div>
+                        <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">Teléfonos</span>
+                        <div className="text-[#E6EDF3] text-base font-mono">{eventData.client.phone}</div>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">Decorador</span>
+                      <div className="text-[#E6EDF3] text-base">{eventData.client.decorator}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'GUESTS' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="bg-[#0D1117] p-4 rounded-xl border border-[#30363D]">
+                      <h4 className="text-[#8B949E] text-xs font-bold uppercase tracking-wider mb-4">Garantía y Contratación</h4>
+                      <div className="space-y-4">
+                        <div className="flex justify-between">
+                          <span className="text-[#8B949E]">Mínimo contratado:</span>
+                          <span className="text-[#E6EDF3] font-bold font-mono">{eventData.guests.min}</span>
+                        </div>
+                        <div className={`flex justify-between items-center p-3 border-l-4 rounded-r-lg ${eventData.guests.confirmed < eventData.guests.min ? 'bg-[#D29922]/10 border-[#D29922]' : 'bg-[#3FB950]/10 border-[#3FB950]'}`}>
+                          <span className="text-[#E6EDF3] font-medium font-display">Confirmados:</span>
+                          <span className="text-[#E6EDF3] text-xl font-bold font-mono">{eventData.guests.confirmed}</span>
+                        </div>
+                        {eventData.guests.confirmed < eventData.guests.min && (
+                          <p className="text-xs text-[#D29922]">⚠️ Confirmados por debajo del mínimo contratado</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-[#0D1117] p-4 rounded-xl border border-[#30363D]">
+                      <h4 className="text-[#8B949E] text-xs font-bold uppercase tracking-wider mb-4">Desglose de invitados</h4>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-[#8B949E]">Adultos:</span>
+                          <span className="text-[#E6EDF3] font-mono">{eventData.guests.confirmed}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#8B949E]">Niños (3-8 años):</span>
+                          <span className="text-[#E6EDF3] font-mono">{eventData.guests.kids}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#8B949E]">Después de 1 AM:</span>
+                          <span className="text-[#E6EDF3] font-mono">{eventData.guests.after}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'PAYMENTS' && (
+                <div className="bg-[#0D1117] rounded-xl border border-[#30363D] overflow-hidden">
+                  <table className="w-full text-left text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-[#161B22] border-b border-[#30363D] text-[#8B949E]">
+                        <th className="p-3 font-medium">Fecha</th>
+                        <th className="p-3 font-medium">Descripción</th>
+                        <th className="p-3 font-medium">Monto</th>
+                        <th className="p-3 font-medium">Método</th>
+                        <th className="p-3 font-medium">Usuario</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#30363D]">
+                      {eventData.payments.map((pay, i) => (
+                        <tr key={i} className="text-[#E6EDF3] hover:bg-[#161B22]/50">
+                          <td className="p-3 font-mono text-[#8B949E]">{pay.date}</td>
+                          <td className="p-3">
+                            <div className="flex flex-col">
+                              <span>{pay.desc}</span>
+                              {(pay as any).isMovement && (
+                                <span className={`text-[10px] font-bold w-max px-1.5 rounded mt-0.5 ${(pay as any).movementType === 'A_CUENTA' ? 'bg-[#3FB950]/10 text-[#3FB950]' : 'bg-[#F85149]/10 text-[#F85149]'}`}>
+                                  {(pay as any).movementType === 'A_CUENTA' ? 'A CUENTA' : 'DEBIENDO'}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className={`p-3 font-bold font-mono ${(pay as any).isMovement && (pay as any).movementType === 'DEBIENDO' ? 'text-[#F85149]' : ''}`}>
+                            {formatCurrency(pay.amount)}
+                          </td>
+                          <td className="p-3 text-[#8B949E]">{pay.method}</td>
+                          <td className="p-3 text-[#8B949E]">{pay.user}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {activeTab === 'OBS' && (
+                <div className="space-y-4">
+                  <div className="bg-[#0D1117] p-4 rounded-xl border border-[#30363D]">
+                    <textarea
+                      readOnly
+                      className="w-full bg-transparent border-none text-[#E6EDF3] text-sm focus:outline-none min-h-[150px] resize-none"
+                      value={eventData.observations.join('\n')}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+      {/* Content Grid */}
+      <div className="pb-20 lg:pb-0">
+        {/* Main Content - Always visible (Services) */}
+        <div className="w-full">
+          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-6">
             <h3 className="text-[#E6EDF3] font-display font-semibold mb-6 flex items-center gap-2">
-              <Package size={18} className="text-[#C8A951]" /> Servicios contratados
+              <Package size={20} className="text-[#C8A951]" /> Servicios contratados
             </h3>
-            
+
+
             <div className="space-y-8">
               {services.map((cat, i) => (
-                <div key={i}>
-                  <h4 className="text-[#8B949E] text-xs font-bold uppercase tracking-wider border-b border-[#30363D] pb-2 mb-3">
+                <div key={i} className="bg-[#0D1117]/30 rounded-lg p-4 border border-[#30363D]/50">
+                  <h4 className="text-[#8B949E] text-xs font-bold uppercase tracking-wider border-b border-[#30363D] pb-2 mb-4">
                     {cat.category}
                   </h4>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {cat.items.map((item: any, j) => (
-                      <div key={j} className={`relative ${item.alert ? 'bg-[#F85149]/10 border border-[#F85149]/30 rounded p-3' : ''}`}>
+                      <div key={j} className={`relative p-3 rounded-lg transition-colors ${item.alert ? 'bg-[#F85149]/5 border border-[#F85149]/20' : 'hover:bg-[#161B22]/50'}`}>
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               {item.isIncluded && <CheckCircle size={14} className="text-[#3FB950]" />}
                               {item.isSena && <CheckCircle size={14} className="text-[#3FB950]" />}
                               {item.alert && <AlertTriangle size={16} className="text-[#F85149]" />}
-                              <span className={`text-sm ${item.isInfo ? 'text-[#8B949E] italic' : 'text-[#E6EDF3]'}`}>
+                              <span className={`text-sm ${item.isInfo ? 'text-[#8B949E] italic' : 'text-[#E6EDF3] font-medium'}`}>
                                 {item.name}
                               </span>
                             </div>
                             {item.subitems && (
-                              <div className="ml-6 mt-1 space-y-0.5">
+                              <div className="ml-6 mt-1.5 space-y-1">
                                 {item.subitems.map((sub: string, k: number) => (
-                                  <div key={k} className="text-xs text-[#8B949E]">↳ {sub}</div>
+                                  <div key={k} className="text-xs text-[#8B949E] flex items-center gap-1.5">
+                                    <span className="text-[#30363D]">↳</span> {sub}
+                                  </div>
                                 ))}
                               </div>
                             )}
-                            {item.alert && (
-                              <div className="ml-6 mt-1 text-xs text-[#F85149] font-medium">
-                                ↳ Alerta: {item.alert}
-                              </div>
-                            )}
                           </div>
-                          
+
                           {!item.isInfo && !isProduction && (
                             <div className="text-right ml-4">
                               <div className="flex items-center justify-end gap-3">
                                 {item.qty && <span className="text-xs text-[#8B949E] font-mono">{item.qty}</span>}
-                                <span className="text-sm text-[#E6EDF3] font-mono w-20">
+                                <span className="text-sm text-[#E6EDF3] font-mono font-medium min-w-[100px]">
                                   {item.price === 0 ? 'incluido' : formatCurrency(item.price)}
                                   {item.unitPrice && <span className="text-[10px] text-[#8B949E] block">c/u</span>}
                                 </span>
                               </div>
-                              <div className={`text-[10px] font-bold mt-1 uppercase ${
-                                item.status === 'PAGADO' || item.status === 'incluido' ? 'text-[#3FB950]' :
+                              <div className={`text-[10px] font-bold mt-1 uppercase tracking-tighter ${item.status === 'PAGADO' || item.status === 'incluido' ? 'text-[#3FB950]' :
                                 item.status === 'A CUENTA' ? 'text-[#C8A951]' :
-                                'text-[#8B949E]'
-                              }`}>
+                                  'text-[#8B949E]'
+                                }`}>
                                 {item.status}
                               </div>
                             </div>
-                          )}
-                          
-                          {!item.isInfo && !item.isIncluded && item.status !== 'PAGADO' && !isProduction && (
-                            <button className="ml-2 p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors" title="Registrar pago">
-                              <DollarSign size={14} />
-                            </button>
                           )}
                         </div>
                       </div>
@@ -1616,98 +1911,100 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
             </div>
           </div>
         </div>
-
-        {/* Right Column - Financial */}
-        {!isProduction && (
-          <div className="lg:col-span-3 space-y-6">
-            {/* Summary */}
-            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-              <h3 className="text-[#E6EDF3] font-display font-semibold mb-4 flex items-center gap-2">
-                <BarChart3 size={18} className="text-[#C8A951]" /> Resumen Financiero
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between pb-2 border-b border-[#30363D]">
-                  <span className="text-[#8B949E]">Total presupuestado:</span>
-                  <span className="text-[#E6EDF3] font-mono">{formatCurrency(eventData.financial.total)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#8B949E]">Total cobrado:</span>
-                  <span className="text-[#3FB950] font-mono">{formatCurrency(eventData.financial.collected)}</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-[#30363D]">
-                  <span className="text-[#E6EDF3] font-bold">Saldo pendiente:</span>
-                  <span className="text-[#F85149] font-bold font-mono">{formatCurrency(eventData.financial.pending)}</span>
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-[#30363D] space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-[#8B949E]">Señas recibidas:</span>
-                    <span className="text-[#E6EDF3] font-mono">{formatCurrency(eventData.financial.senas)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-[#8B949E]">A cuenta:</span>
-                    <span className="text-[#E6EDF3] font-mono">{formatCurrency(eventData.financial.account)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-[#8B949E]">Pendiente:</span>
-                    <span className="text-[#E6EDF3] font-mono">{formatCurrency(eventData.financial.pending)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment History */}
-            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-              <h3 className="text-[#E6EDF3] font-display font-semibold mb-4 flex items-center gap-2">
-                <CreditCard size={18} className="text-[#C8A951]" /> Historial de pagos
-              </h3>
-              <div className="space-y-4">
-                {eventData.payments.map((pay, i) => (
-                  <div key={i} className="text-xs border-b border-[#30363D] pb-2 last:border-0 last:pb-0">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-[#8B949E]">{pay.date}</span>
-                      <span className="text-[#E6EDF3] font-mono font-bold">{formatCurrency(pay.amount)}</span>
-                    </div>
-                    <div className="text-[#E6EDF3] mb-1">{pay.desc}</div>
-                    <div className="flex justify-between text-[#8B949E] italic">
-                      <span>{pay.method}</span>
-                      <span>{pay.user}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Observations */}
-            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-              <h3 className="text-[#E6EDF3] font-display font-semibold mb-4 flex items-center gap-2">
-                <FileText size={18} className="text-[#C8A951]" /> Observaciones
-              </h3>
-              <ul className="list-disc pl-4 space-y-2 text-sm text-[#8B949E]">
-                {eventData.observations.map((obs, i) => (
-                  <li key={i}>{obs}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {/* Observations (Visible for Production if Right Column is hidden) */}
-        {isProduction && (
-          <div className="col-span-12">
-            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-              <h3 className="text-[#E6EDF3] font-display font-semibold mb-4 flex items-center gap-2">
-                <FileText size={18} className="text-[#C8A951]" /> Observaciones
-              </h3>
-              <ul className="list-disc pl-4 space-y-2 text-sm text-[#8B949E]">
-                {eventData.observations.map((obs, i) => (
-                  <li key={i}>{obs}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
       </div>
+
+      <Modal
+        isOpen={isMovementModalOpen}
+        onClose={() => setIsMovementModalOpen(false)}
+        title="Nuevo movimiento de dinero"
+        footer={
+          <>
+            <button
+              onClick={() => setIsMovementModalOpen(false)}
+              className="px-4 py-2 text-[#8B949E] hover:text-[#E6EDF3] rounded-lg font-medium transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleMovementSubmit}
+              className="px-4 py-2 bg-[#C8A951] text-[#0D1117] rounded-lg font-bold hover:bg-[#D4B96A] transition-colors"
+            >
+              Guardar movimiento
+            </button>
+          </>
+        }
+      >
+        <form onSubmit={handleMovementSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[#8B949E] mb-2">Tipo de movimiento</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setMovementForm({ ...movementForm, type: 'A_CUENTA' })}
+                className={`p-3 rounded-xl border text-center transition-all ${movementForm.type === 'A_CUENTA' ? 'bg-[#3FB950]/10 border-[#3FB950] text-[#3FB950]' : 'bg-[#0D1117] border-[#30363D] text-[#8B949E] hover:border-[#8B949E]'}`}
+              >
+                <div className="font-bold text-sm">A cuenta</div>
+                <div className="text-[10px] opacity-70">(Adelanto/Vuelto)</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMovementForm({ ...movementForm, type: 'DEBIENDO' })}
+                className={`p-3 rounded-xl border text-center transition-all ${movementForm.type === 'DEBIENDO' ? 'bg-[#F85149]/10 border-[#F85149] text-[#F85149]' : 'bg-[#0D1117] border-[#30363D] text-[#8B949E] hover:border-[#8B949E]'}`}
+              >
+                <div className="font-bold text-sm">Debiendo</div>
+                <div className="text-[10px] opacity-70">(Deuda generada)</div>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-[#8B949E] mb-1">Monto</label>
+              <input
+                type="number"
+                value={movementForm.amount}
+                onChange={(e) => setMovementForm({ ...movementForm, amount: e.target.value })}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none"
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#8B949E] mb-1">Moneda</label>
+              <select
+                value={movementForm.currency}
+                onChange={(e) => setMovementForm({ ...movementForm, currency: e.target.value })}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none"
+              >
+                <option value="ARS">ARS</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#8B949E] mb-1">Fecha</label>
+            <input
+              type="date"
+              value={movementForm.date}
+              onChange={(e) => setMovementForm({ ...movementForm, date: e.target.value })}
+              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#8B949E] mb-1">Descripción</label>
+            <textarea
+              value={movementForm.description}
+              onChange={(e) => setMovementForm({ ...movementForm, description: e.target.value })}
+              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none resize-none h-20"
+              placeholder="Ej: Vuelto de tarjeta — $40.000"
+              required
+            />
+          </div>
+        </form>
+      </Modal>
 
       <Modal
         isOpen={isPaymentModalOpen}
@@ -1715,14 +2012,14 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
         title="Registrar Nuevo Pago"
         footer={
           <>
-            <button 
-              onClick={() => setIsPaymentModalOpen(false)} 
+            <button
+              onClick={() => setIsPaymentModalOpen(false)}
               className="px-4 py-2 text-[#E6EDF3] hover:bg-[#30363D] rounded-lg font-medium transition-colors"
             >
               Cancelar
             </button>
-            <button 
-              onClick={handlePaymentSubmit} 
+            <button
+              onClick={handlePaymentSubmit}
               className="px-4 py-2 bg-[#3FB950] text-white rounded-lg font-bold hover:bg-[#2ea043] transition-colors"
             >
               Confirmar Pago
@@ -1735,11 +2032,11 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
             <label className="block text-sm font-medium text-[#8B949E] mb-1">Monto</label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-[#8B949E]">$</span>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={paymentForm.amount}
-                onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
-                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-8 pr-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" 
+                onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-8 pr-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none"
                 placeholder="0.00"
                 required
               />
@@ -1749,9 +2046,9 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
           <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-1">Tipo de Pago</label>
             <div className="relative">
-              <select 
+              <select
                 value={paymentForm.type}
-                onChange={(e) => setPaymentForm({...paymentForm, type: e.target.value})}
+                onChange={(e) => setPaymentForm({ ...paymentForm, type: e.target.value })}
                 className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] appearance-none focus:border-[#C8A951] focus:outline-none"
               >
                 {paymentTypes.map(type => (
@@ -1765,9 +2062,9 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
           <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-1">Método de Pago</label>
             <div className="relative">
-              <select 
+              <select
                 value={paymentForm.method}
-                onChange={(e) => setPaymentForm({...paymentForm, method: e.target.value})}
+                onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
                 className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] appearance-none focus:border-[#C8A951] focus:outline-none"
               >
                 <option value="EFECTIVO">Efectivo</option>
@@ -1781,33 +2078,85 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
 
           <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-1">Notas / Observaciones</label>
-            <textarea 
+            <textarea
               value={paymentForm.notes}
-              onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
-              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none min-h-[80px]" 
+              onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none min-h-[80px]"
               placeholder="Detalles adicionales..."
             />
           </div>
         </form>
       </Modal>
+    </div >
+  );
+};
+
+const CateringEventDetailView = ({ eventData }: { eventData: any }) => {
+  return (
+    <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-6 max-w-2xl mx-auto mt-8">
+      <h2 className="text-xl font-display font-bold text-[#E6EDF3] mb-4">{eventData.title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-[#8B949E]">
+            <Calendar size={16} />
+            <span>{eventData.date}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[#8B949E]">
+            <Clock size={16} />
+            <span>{eventData.time}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[#8B949E]">
+            <MapPin size={16} />
+            <span>{eventData.salon}</span>
+          </div>
+        </div>
+        <div className="bg-[#0D1117] rounded-lg p-4 border border-[#30363D]">
+          <h3 className="text-[#C8A951] font-medium mb-3">Cantidades</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-[#8B949E]">Adultos:</span>
+              <span className="text-[#E6EDF3] font-bold">{eventData.guests.confirmed}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#8B949E]">Mozos:</span>
+              <span className="text-[#E6EDF3] font-bold">8</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+
+const LiquidacionesView = () => (
+  <div className="p-4 lg:p-8 h-full flex flex-col items-center justify-center">
+    <div className="text-center max-w-md">
+      <div className="w-20 h-20 bg-[#161B22] border border-[#30363D] rounded-full flex items-center justify-center mx-auto mb-6 text-[#C8A951]">
+        <Clock size={40} />
+      </div>
+      <h1 className="text-3xl font-display font-bold text-[#E6EDF3] mb-4">Liquidaciones — Catering</h1>
+      <p className="text-lg text-[#8B949E] leading-relaxed">
+        Este módulo está en construcción.<br />
+        Próximamente podrás gestionar las liquidaciones del catering por evento desde acá.
+      </p>
+    </div>
+  </div>
+);
 const CatalogView = () => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [editingItem, setEditingItem] = useState<ServiceItem | null>(null);
 
   const categories = ['ALL', ...Array.from(new Set(CATALOG_DATA.map(item => item.category)))];
 
-  const filteredCatalog = activeCategory === 'ALL' 
-    ? CATALOG_DATA 
+  const filteredCatalog = activeCategory === 'ALL'
+    ? CATALOG_DATA
     : CATALOG_DATA.filter(item => item.category === activeCategory);
 
   return (
     <div className="p-4 lg:p-8 h-full flex flex-col">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4 lg:gap-0">
-        <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Catálogo de Servicios</h1>
-        <button 
+        <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Presupuesto de Servicios</h1>
+        <button
           className="w-full lg:w-auto bg-[#1F6FEB] hover:bg-[#388BFD] text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
         >
           <Plus size={18} />
@@ -1837,11 +2186,10 @@ const CatalogView = () => {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              activeCategory === cat 
-                ? 'bg-[#C8A951] text-[#0D1117]' 
-                : 'bg-[#161B22] border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#8B949E]'
-            }`}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeCategory === cat
+              ? 'bg-[#C8A951] text-[#0D1117]'
+              : 'bg-[#161B22] border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#8B949E]'
+              }`}
           >
             {cat === 'ALL' ? 'Todos' : cat}
           </button>
@@ -1882,7 +2230,7 @@ const CatalogView = () => {
                   <td className="p-4 text-[#8B949E] text-sm">{item.vigencia}</td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                      <button 
+                      <button
                         onClick={() => setEditingItem(item)}
                         className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors"
                       >
@@ -1903,24 +2251,24 @@ const CatalogView = () => {
       {/* Mobile Card View */}
       <div className="lg:hidden space-y-4 pb-20">
         {filteredCatalog.map(item => (
-          <div 
+          <div
             key={item.id}
             className="bg-[#161B22] border border-[#30363D] rounded-xl p-4"
           >
             <div className="flex justify-between items-start mb-2">
               <div className="font-medium text-[#E6EDF3] text-lg leading-tight pr-2">{item.name}</div>
-              <button 
+              <button
                 onClick={() => setEditingItem(item)}
                 className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors shrink-0"
               >
                 <Edit2 size={16} />
               </button>
             </div>
-            
+
             <div className="mb-3">
-               <span className="text-[#8B949E] text-xs font-bold uppercase tracking-wider bg-[#30363D]/50 px-2 py-1 rounded">
-                 {item.category}
-               </span>
+              <span className="text-[#8B949E] text-xs font-bold uppercase tracking-wider bg-[#30363D]/50 px-2 py-1 rounded">
+                {item.category}
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm mb-3">
@@ -1998,6 +2346,15 @@ const ReportsView = () => {
     { name: 'Mar', value: 13400000, active: true },
   ];
 
+  const dataReservations = [
+    { name: 'Oct', value: 2 },
+    { name: 'Nov', value: 4 },
+    { name: 'Dic', value: 8 },
+    { name: 'Ene', value: 3 },
+    { name: 'Feb', value: 5 },
+    { name: 'Mar', value: 6 },
+  ];
+
   const dataPie = [
     { name: '15 años', value: 3, color: '#C8A951' },
     { name: 'Casamiento', value: 3, color: '#1F6FEB' },
@@ -2049,10 +2406,10 @@ const ReportsView = () => {
           </div>
         </div>
         <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-          <div className="text-[#8B949E] text-sm font-medium mb-2">Ocupación del mes</div>
-          <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">6 / 8</div>
+          <div className="text-[#8B949E] text-sm font-medium mb-2">Señas del mes</div>
+          <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">5 señas</div>
           <div className="text-[#8B949E] text-xs font-medium flex items-center gap-1">
-            75% ocupado (sábados)
+            en Marzo
           </div>
         </div>
       </div>
@@ -2065,9 +2422,9 @@ const ReportsView = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dataIncome}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#30363D" vertical={false} />
-                <XAxis dataKey="name" stroke="#8B949E" tick={{fill: '#8B949E'}} axisLine={false} tickLine={false} />
-                <YAxis stroke="#8B949E" tick={{fill: '#8B949E'}} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value/1000000}M`} />
-                <RechartsTooltip 
+                <XAxis dataKey="name" stroke="#8B949E" tick={{ fill: '#8B949E' }} axisLine={false} tickLine={false} />
+                <YAxis stroke="#8B949E" tick={{ fill: '#8B949E' }} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value / 1000000}M`} />
+                <RechartsTooltip
                   contentStyle={{ backgroundColor: '#0D1117', borderColor: '#30363D', color: '#E6EDF3' }}
                   itemStyle={{ color: '#E6EDF3' }}
                   formatter={(value: number) => formatCurrency(value)}
@@ -2102,9 +2459,9 @@ const ReportsView = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                     ))}
                   </Pie>
-                  <RechartsTooltip 
-                     contentStyle={{ backgroundColor: '#0D1117', borderColor: '#30363D', color: '#E6EDF3' }}
-                     itemStyle={{ color: '#E6EDF3' }}
+                  <RechartsTooltip
+                    contentStyle={{ backgroundColor: '#0D1117', borderColor: '#30363D', color: '#E6EDF3' }}
+                    itemStyle={{ color: '#E6EDF3' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -2126,7 +2483,7 @@ const ReportsView = () => {
 
       {/* Detailed Statistics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Top Services */}
         <div className="bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden">
           <div className="p-6 border-b border-[#30363D]">
@@ -2195,7 +2552,7 @@ const ReportsView = () => {
             </h3>
           </div>
           <div className="p-4">
-             <div className="h-48 w-full">
+            <div className="h-48 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={[
                   { name: 'Dic', value: 15800000 },
@@ -2206,9 +2563,9 @@ const ReportsView = () => {
                 ]} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#30363D" horizontal={false} />
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" stroke="#8B949E" tick={{fill: '#E6EDF3'}} width={30} axisLine={false} tickLine={false} />
-                  <RechartsTooltip 
-                    cursor={{fill: '#30363D', opacity: 0.4}}
+                  <YAxis dataKey="name" type="category" stroke="#8B949E" tick={{ fill: '#E6EDF3' }} width={30} axisLine={false} tickLine={false} />
+                  <RechartsTooltip
+                    cursor={{ fill: '#30363D', opacity: 0.4 }}
                     contentStyle={{ backgroundColor: '#0D1117', borderColor: '#30363D', color: '#E6EDF3' }}
                     formatter={(value: number) => formatCurrency(value)}
                   />
@@ -2227,7 +2584,7 @@ const ReportsView = () => {
             </h3>
           </div>
           <div className="p-4">
-             <div className="h-48 w-full">
+            <div className="h-48 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={[
                   { name: 'Diciembre', value: 12 },
@@ -2238,12 +2595,37 @@ const ReportsView = () => {
                 ]} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#30363D" horizontal={false} />
                   <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" stroke="#8B949E" tick={{fill: '#E6EDF3'}} width={70} axisLine={false} tickLine={false} />
-                  <RechartsTooltip 
-                    cursor={{fill: '#30363D', opacity: 0.4}}
+                  <YAxis dataKey="name" type="category" stroke="#8B949E" tick={{ fill: '#E6EDF3' }} width={70} axisLine={false} tickLine={false} />
+                  <RechartsTooltip
+                    cursor={{ fill: '#30363D', opacity: 0.4 }}
                     contentStyle={{ backgroundColor: '#0D1117', borderColor: '#30363D', color: '#E6EDF3' }}
                   />
                   <Bar dataKey="value" fill="#F85149" radius={[0, 4, 4, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* New Chart - Seasonality - Reservations Count */}
+        <div className="bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden">
+          <div className="p-6 border-b border-[#30363D]">
+            <h3 className="text-[#E6EDF3] font-display font-semibold flex items-center gap-2">
+              <BarChart3 size={18} className="text-[#E8570A]" /> Meses con más reservas
+            </h3>
+          </div>
+          <div className="p-4">
+            <div className="h-48 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dataReservations}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#30363D" vertical={false} />
+                  <XAxis dataKey="name" stroke="#8B949E" tick={{ fill: '#E6EDF3' }} axisLine={false} tickLine={false} />
+                  <YAxis hide />
+                  <RechartsTooltip
+                    contentStyle={{ backgroundColor: '#0D1117', borderColor: '#30363D', color: '#E6EDF3' }}
+                    cursor={{ fill: '#30363D', opacity: 0.4 }}
+                  />
+                  <Bar dataKey="value" fill="#E8570A" radius={[4, 4, 0, 0]} barSize={30} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -2256,8 +2638,12 @@ const ReportsView = () => {
 };
 
 const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) => {
-  const [filterMethod, setFilterMethod] = useState<string>('ALL');
+  const [filterEvent, setFilterEvent] = useState<string>('ALL');
+  const [filterUser, setFilterUser] = useState<string>('ALL');
+  const [filterDateFrom, setFilterDateFrom] = useState<string>('');
+  const [filterDateTo, setFilterDateTo] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedDates, setExpandedDates] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const itemsPerPage = 10;
@@ -2291,15 +2677,43 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
     { name: 'Quinceañera Isabella Torres', paid: 0, total: 12400000, percent: 0, pending: 12400000, alert: true },
   ];
 
+  // Calculate events missing full señas
+  const eventsWithoutFullSena = useMemo(() => {
+    return EVENTS_DATA.filter(evt => evt.status !== 'CONFIRMADO' && evt.status !== 'CANCELADO').length;
+  }, []);
+
   const filteredPayments = payments.filter(payment => {
-    const matchesMethod = filterMethod === 'ALL' || payment.method === filterMethod;
-    const matchesSearch = payment.event.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          payment.desc.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesMethod && matchesSearch;
+    const matchesSearch = payment.event.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.desc.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesEvent = filterEvent === 'ALL' || payment.event === filterEvent;
+    const matchesUser = filterUser === 'ALL' || payment.user === filterUser;
+
+    const matchesDate = (!filterDateFrom || payment.date >= filterDateFrom) &&
+      (!filterDateTo || payment.date <= filterDateTo);
+
+    return matchesSearch && matchesEvent && matchesUser && matchesDate;
   });
 
-  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
-  const paginatedPayments = filteredPayments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const groupedPayments = useMemo(() => {
+    const sorted = [...filteredPayments].sort((a, b) => b.date.localeCompare(a.date));
+    const groups: { [date: string]: typeof filteredPayments } = {};
+    sorted.forEach(p => {
+      if (!groups[p.date]) groups[p.date] = [];
+      groups[p.date].push(p);
+    });
+    return groups;
+  }, [filteredPayments]);
+
+  const uniqueDates = useMemo(() => Object.keys(groupedPayments), [groupedPayments]);
+  const totalPages = Math.ceil(uniqueDates.length / itemsPerPage);
+  const paginatedDates = uniqueDates.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const toggleDate = (date: string) => {
+    setExpandedDates(prev =>
+      prev.includes(date) ? prev.filter(d => d !== date) : [...prev, date]
+    );
+  };
 
   const getProgressColor = (percent: number) => {
     if (percent === 100) return '#3FB950';
@@ -2341,10 +2755,10 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
           </div>
         </div>
         <div className="bg-[#161B22] border border-[#30363D] border-t-4 border-t-[#F85149] rounded-xl p-5">
-          <div className="text-[#8B949E] text-sm font-medium mb-2">Saldo pendiente</div>
-          <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">$24.400.000</div>
-          <div className="text-[#D29922] text-xs font-medium flex items-center gap-1">
-            ⚠️ 5 eventos
+          <div className="text-[#8B949E] text-sm font-medium mb-2">Señas pendientes</div>
+          <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">{eventsWithoutFullSena}</div>
+          <div className="text-[#F85149] text-xs font-medium flex items-center gap-1 leading-tight">
+            eventos sin seña completa
           </div>
         </div>
         <div className="bg-[#161B22] border border-[#30363D] border-t-4 border-t-[#C8A951] rounded-xl p-5">
@@ -2356,193 +2770,225 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 lg:flex-1 lg:min-h-0">
-        {/* Payments Table (65%) */}
-        <div className="w-full lg:w-[65%] flex flex-col bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden">
-          <div className="p-6 border-b border-[#30363D] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
-            <h3 className="text-[#E6EDF3] font-display font-semibold">Historial de Pagos</h3>
-            <button 
-              onClick={() => setIsRegisterModalOpen(true)}
-              className="w-full sm:w-auto bg-[#1F6FEB] hover:bg-[#388BFD] text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
-            >
-              <Plus size={16} />
-              Registrar pago manual
-            </button>
-          </div>
-          
-          <div className="p-4 border-b border-[#30363D] flex flex-col sm:flex-row gap-4">
+      {/* Payments Table (Full Width) */}
+      <div className="w-full flex flex-col bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden">
+        <div className="p-6 border-b border-[#30363D] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+          <h3 className="text-[#E6EDF3] font-display font-semibold">Historial de Pagos</h3>
+          <button
+            onClick={() => setIsRegisterModalOpen(true)}
+            className="w-full sm:w-auto bg-[#1F6FEB] hover:bg-[#388BFD] text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            <Plus size={16} />
+            Registrar pago manual
+          </button>
+        </div>
+
+        <div className="p-4 border-b border-[#30363D] space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-2.5 text-[#8B949E] h-4 w-4" />
-              <input 
-                type="text" 
-                placeholder="Buscar por evento o descripción..." 
+              <input
+                type="text"
+                placeholder="Buscar descripción..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#C8A951]"
               />
             </div>
-            <div className="relative w-full sm:w-48">
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={filterDateFrom}
+                onChange={(e) => setFilterDateFrom(e.target.value)}
+                className="bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#C8A951]"
+                title="Desde"
+              />
+              <input
+                type="date"
+                value={filterDateTo}
+                onChange={(e) => setFilterDateTo(e.target.value)}
+                className="bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#C8A951]"
+                title="Hasta"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
               <Filter className="absolute left-3 top-2.5 text-[#8B949E] h-4 w-4" />
-              <select 
-                value={filterMethod}
-                onChange={(e) => setFilterMethod(e.target.value)}
+              <select
+                value={filterEvent}
+                onChange={(e) => setFilterEvent(e.target.value)}
                 className="w-full bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-10 pr-4 py-2 text-sm appearance-none focus:outline-none focus:border-[#C8A951]"
               >
-                <option value="ALL">Todos los métodos</option>
-                <option value="Efectivo">Efectivo</option>
-                <option value="Transferencia">Transferencia</option>
-                <option value="Tarjeta">Tarjeta</option>
+                <option value="ALL">Todos los eventos</option>
+                {Array.from(new Set(payments.map(p => p.event))).map(evt => (
+                  <option key={evt} value={evt}>{evt}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-3 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
+            </div>
+            <div className="relative flex-1">
+              <Users className="absolute left-3 top-2.5 text-[#8B949E] h-4 w-4" />
+              <select
+                value={filterUser}
+                onChange={(e) => setFilterUser(e.target.value)}
+                className="w-full bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-10 pr-4 py-2 text-sm appearance-none focus:outline-none focus:border-[#C8A951]"
+              >
+                <option value="ALL">Todos los usuarios</option>
+                {Array.from(new Set(payments.map(p => p.user))).map(u => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
               </select>
               <ChevronDown className="absolute right-3 top-3 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
             </div>
           </div>
-
-          {/* Desktop Table View */}
-          <div className="hidden lg:block flex-1 overflow-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead className="sticky top-0 bg-[#161B22] z-10">
-                <tr className="border-b border-[#30363D] text-[#8B949E] text-xs uppercase tracking-wider">
-                  <th className="p-4 font-medium">Fecha</th>
-                  <th className="p-4 font-medium">Evento</th>
-                  <th className="p-4 font-medium">Descripción</th>
-                  <th className="p-4 font-medium text-right">Monto</th>
-                  <th className="p-4 font-medium text-center">Moneda</th>
-                  <th className="p-4 font-medium text-center">Método</th>
-                  <th className="p-4 font-medium">Registrado por</th>
-                  <th className="p-4 font-medium text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#30363D]">
-                {paginatedPayments.map(payment => (
-                  <tr key={payment.id} className="hover:bg-[#C8A951]/5 transition-colors group">
-                    <td className="p-4 text-[#8B949E] text-sm tabular-nums whitespace-nowrap">{payment.date}</td>
-                    <td className="p-4 text-[#E6EDF3] text-sm font-medium">{payment.event}</td>
-                    <td className="p-4 text-[#E6EDF3] text-sm">
-                      <div className="flex items-center gap-2">
-                        {payment.desc}
-                        {payment.type === 'SENA' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30">SEÑA</span>}
-                        {payment.type === 'SALDO' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#3FB950]/20 text-[#3FB950] border border-[#3FB950]/30">SALDO</span>}
-                      </div>
-                    </td>
-                    <td className="p-4 text-right text-[#E6EDF3] text-sm font-medium tabular-nums">{formatCurrency(payment.amount)}</td>
-                    <td className="p-4 text-center text-[#8B949E] text-xs font-bold">{payment.currency}</td>
-                    <td className="p-4 text-center">
-                      <div className="flex justify-center" title={payment.method}>
-                        {getMethodIcon(payment.method)}
-                      </div>
-                    </td>
-                    <td className="p-4 text-[#8B949E] text-sm">{payment.user}</td>
-                    <td className="p-4 text-center">
-                      <button 
-                        onClick={() => onSelectEvent(payment.eventId)}
-                        className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors"
-                        title="Ver evento"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="lg:hidden p-4 space-y-4">
-            {paginatedPayments.map(payment => (
-              <div key={payment.id} className="bg-[#0D1117] border border-[#30363D] rounded-xl p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="text-[#8B949E] text-xs">{payment.date}</div>
-                  <div className="flex items-center gap-2">
-                    {payment.type === 'SENA' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30">SEÑA</span>}
-                    {payment.type === 'SALDO' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#3FB950]/20 text-[#3FB950] border border-[#3FB950]/30">SALDO</span>}
-                  </div>
-                </div>
-                
-                <div className="mb-3">
-                  <h4 className="text-[#E6EDF3] font-medium text-sm mb-1">{payment.event}</h4>
-                  <p className="text-[#8B949E] text-xs">{payment.desc}</p>
-                </div>
-
-                <div className="flex justify-between items-end border-t border-[#30363D] pt-3">
-                  <div className="flex items-center gap-3 text-xs text-[#8B949E]">
-                    <div className="flex items-center gap-1">
-                      {getMethodIcon(payment.method)}
-                      <span>{payment.method}</span>
-                    </div>
-                    <span>•</span>
-                    <span>{payment.user}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[#E6EDF3] font-mono font-bold">{formatCurrency(payment.amount)}</div>
-                    <div className="text-[#8B949E] text-[10px] font-bold">{payment.currency}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-4 border-t border-[#30363D] flex flex-col sm:flex-row items-center justify-between text-sm text-[#8B949E] gap-4 sm:gap-0">
-            <div>Mostrando {Math.min(filteredPayments.length, (currentPage - 1) * itemsPerPage + 1)} - {Math.min(filteredPayments.length, currentPage * itemsPerPage)} de {filteredPayments.length}</div>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 bg-[#0D1117] border border-[#30363D] rounded hover:bg-[#30363D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Anterior
-              </button>
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 bg-[#0D1117] border border-[#30363D] rounded hover:bg-[#30363D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
         </div>
 
-        {/* Balance Panel (35%) */}
-        <div className="w-full lg:w-[35%] bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden flex flex-col h-auto">
-          <div className="p-6 border-b border-[#30363D]">
-            <h3 className="text-[#E6EDF3] font-display font-semibold">Estado por Evento</h3>
-          </div>
-          <div className="p-6 overflow-y-auto space-y-8 flex-1">
-            {eventBalances.map((event, i) => (
-              <div key={i}>
-                <div className="flex justify-between items-baseline mb-2">
-                  <h4 className="text-[#E6EDF3] text-sm font-medium truncate pr-2">{event.name}</h4>
-                  <span className={`text-xs font-bold ${event.percent === 100 ? 'text-[#3FB950]' : 'text-[#8B949E]'}`}>
-                    {event.percent}%
-                  </span>
+        {/* Desktop Table View */}
+        <div className="hidden lg:block flex-1 overflow-auto">
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead className="sticky top-0 bg-[#161B22] z-10">
+              <tr className="border-b border-[#30363D] text-[#8B949E] text-xs uppercase tracking-wider">
+                <th className="p-4 font-medium w-48">Fecha / Detalle</th>
+                <th className="p-4 font-medium">Evento</th>
+                <th className="p-4 font-medium">Descripción</th>
+                <th className="p-4 font-medium text-right">Monto</th>
+                <th className="p-4 font-medium text-center">Moneda</th>
+                <th className="p-4 font-medium text-center">Método</th>
+                <th className="p-4 font-medium">Registrado por</th>
+                <th className="p-4 font-medium text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#30363D]">
+              {paginatedDates.map(date => {
+                const dayPayments = groupedPayments[date];
+                const dayTotal = dayPayments.reduce((sum, p) => sum + p.amount, 0);
+                const isExpanded = expandedDates.includes(date);
+
+                return (
+                  <React.Fragment key={date}>
+                    <tr
+                      onClick={() => toggleDate(date)}
+                      className="bg-[#0D1117] hover:bg-[#30363D]/30 cursor-pointer border-b border-[#30363D] group transition-colors"
+                    >
+                      <td className="p-4 font-bold text-[#C8A951] text-sm tabular-nums flex items-center gap-3">
+                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        {new Date(date + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </td>
+                      <td colSpan={2} className="p-4 text-[#8B949E] text-xs italic">
+                        {dayPayments.length} movimiento(s) registrado(s)
+                      </td>
+                      <td className="p-4 text-right text-[#3FB950] font-bold tabular-nums">
+                        {formatCurrency(dayTotal)}
+                      </td>
+                      <td colSpan={4} className="p-4"></td>
+                    </tr>
+                    {isExpanded && dayPayments.map(payment => (
+                      <tr key={payment.id} className="hover:bg-[#C8A951]/5 transition-colors group">
+                        <td className="p-4 text-[#8B949E] text-xs pl-10 tabular-nums">{payment.date}</td>
+                        <td className="p-4 text-[#E6EDF3] text-sm font-medium">{payment.event}</td>
+                        <td className="p-4 text-[#E6EDF3] text-sm">
+                          <div className="flex items-center gap-2">
+                            {payment.desc}
+                            {payment.type === 'SENA' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30">SEÑA</span>}
+                            {payment.type === 'SALDO' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#3FB950]/20 text-[#3FB950] border border-[#3FB950]/30">SALDO</span>}
+                          </div>
+                        </td>
+                        <td className="p-4 text-right text-[#E6EDF3] text-sm font-medium tabular-nums">{formatCurrency(payment.amount)}</td>
+                        <td className="p-4 text-center text-[#8B949E] text-xs font-bold">{payment.currency}</td>
+                        <td className="p-4 text-center">
+                          <div className="flex justify-center" title={payment.method}>
+                            {getMethodIcon(payment.method)}
+                          </div>
+                        </td>
+                        <td className="p-4 text-[#8B949E] text-sm">{payment.user}</td>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectEvent(payment.eventId);
+                            }}
+                            className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors"
+                            title="Ver evento"
+                          >
+                            <ChevronRight size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="lg:hidden p-4 space-y-4">
+          {paginatedDates.map(date => {
+            const dayPayments = groupedPayments[date];
+            const dayTotal = dayPayments.reduce((sum, p) => sum + p.amount, 0);
+            const isExpanded = expandedDates.includes(date);
+
+            return (
+              <div key={date} className="bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden">
+                <div
+                  onClick={() => toggleDate(date)}
+                  className="p-4 flex justify-between items-center bg-[#0D1117] cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 font-bold text-[#C8A951]">
+                    {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                    {date}
+                  </div>
+                  <div className="text-[#3FB950] font-bold">{formatCurrency(dayTotal)}</div>
                 </div>
-                <div className="h-2 bg-[#0D1117] rounded-full overflow-hidden mb-2">
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ 
-                      width: `${event.percent}%`,
-                      backgroundColor: getProgressColor(event.percent)
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs tabular-nums">
-                  <span className="text-[#8B949E]">{formatCurrency(event.paid)} / {formatCurrency(event.total)}</span>
-                  {event.status ? (
-                    <span className="text-[#3FB950] font-bold">{event.status}</span>
-                  ) : (
-                    <span className="text-[#F85149] font-medium">
-                      {formatCurrency(event.pending!)} pendiente {event.alert && '⚠️'}
-                    </span>
-                  )}
-                </div>
-                {event.alert && (
-                  <div className="mt-1 text-[10px] text-[#F85149] font-medium">
-                    Sin señas registradas
+
+                {isExpanded && (
+                  <div className="divide-y divide-[#30363D]">
+                    {dayPayments.map(payment => (
+                      <div key={payment.id} className="p-4 bg-[#161B22]">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="text-[#E6EDF3] font-medium text-sm">{payment.event}</h4>
+                          <div className="flex items-center gap-2">
+                            {payment.type === 'SENA' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30">SEÑA</span>}
+                            {payment.type === 'SALDO' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#3FB950]/20 text-[#3FB950] border border-[#3FB950]/30">SALDO</span>}
+                          </div>
+                        </div>
+                        <p className="text-[#8B949E] text-xs mb-3">{payment.desc}</p>
+                        <div className="flex justify-between items-end">
+                          <div className="flex items-center gap-2 text-xs text-[#8B949E]">
+                            {getMethodIcon(payment.method)}
+                            <span>{payment.user}</span>
+                          </div>
+                          <div className="text-[#E6EDF3] font-mono font-bold">{formatCurrency(payment.amount)}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-            ))}
+            );
+          })}
+        </div>
+
+        <div className="p-4 border-t border-[#30363D] flex flex-col sm:flex-row items-center justify-between text-sm text-[#8B949E] gap-4 sm:gap-0">
+          <div>Mostrando {Math.min(uniqueDates.length, (currentPage - 1) * itemsPerPage + 1)} - {Math.min(uniqueDates.length, currentPage * itemsPerPage)} días de {uniqueDates.length}</div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 bg-[#0D1117] border border-[#30363D] rounded hover:bg-[#30363D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 bg-[#0D1117] border border-[#30363D] rounded hover:bg-[#30363D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente
+            </button>
           </div>
         </div>
       </div>
@@ -2606,8 +3052,8 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
           </div>
           <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-1">Notas / Observaciones</label>
-            <textarea 
-              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none min-h-[80px]" 
+            <textarea
+              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none min-h-[80px]"
               placeholder="Detalles adicionales..."
             />
           </div>
@@ -2617,6 +3063,90 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
           </div>
         </div>
       </Modal>
+    </div>
+  );
+};
+
+const UsersView = ({ currentUser }: { currentUser: User }) => {
+  const isJefe = currentUser.role === 'JEFE';
+
+  return (
+    <div className="p-4 lg:p-8 h-full flex flex-col overflow-y-auto">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4 lg:gap-0">
+        <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Gestión de Usuarios</h1>
+        {isJefe ? (
+          <button className="bg-[#C8A951] text-[#0D1117] px-4 py-2 rounded-lg font-bold hover:bg-[#D4B96A] transition-colors flex items-center gap-2">
+            <Plus size={18} /> Agregar usuario
+          </button>
+        ) : (
+          <button
+            disabled
+            title="Solo Franco u Orlando pueden gestionar usuarios"
+            className="bg-[#30363D] text-[#8B949E] px-4 py-2 rounded-lg font-bold cursor-not-allowed flex items-center gap-2"
+          >
+            <Plus size={18} /> Agregar usuario
+          </button>
+        )}
+      </div>
+
+      <div className="bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[600px]">
+            <thead>
+              <tr className="border-b border-[#30363D] text-[#8B949E] text-xs uppercase tracking-wider">
+                <th className="p-4 font-medium">Usuario</th>
+                <th className="p-4 font-medium">Rol</th>
+                <th className="p-4 font-medium">Estado</th>
+                <th className="p-4 font-medium text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#30363D]">
+              {USERS.map(u => (
+                <tr key={u.id} className="hover:bg-[#C8A951]/5 transition-colors group">
+                  <td className="p-4 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#30363D] flex items-center justify-center text-[#C8A951] font-bold text-xs">
+                      {u.name[0]}
+                    </div>
+                    <span className="text-[#E6EDF3] font-medium">{u.name}</span>
+                  </td>
+                  <td className="p-4">
+                    <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-[#1F6FEB]/10 text-[#1F6FEB] border border-[#1F6FEB]/20 uppercase">
+                      {u.role.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <span className="flex items-center gap-1.5 text-[#3FB950] text-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#3FB950]" /> Activo
+                    </span>
+                  </td>
+                  <td className="p-4 text-center">
+                    {isJefe ? (
+                      <button className="p-2 text-[#8B949E] hover:text-[#F85149] hover:bg-[#F85149]/10 rounded transition-colors" title="Eliminar usuario">
+                        <Trash2 size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        title="Solo Franco u Orlando pueden gestionar usuarios"
+                        className="p-2 text-[#30363D] cursor-not-allowed"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-8 p-4 bg-[#C8A951]/10 border border-[#C8A951]/20 rounded-lg">
+        <p className="text-sm text-[#C8A951] flex items-center gap-2">
+          <AlertTriangle size={16} />
+          <strong>Seguridad:</strong> Solo los roles JEFE (Franco y Orlando) tienen permisos para modificar la nómina de usuarios del sistema.
+        </p>
+      </div>
     </div>
   );
 };
@@ -2632,7 +3162,7 @@ const ExpensesView = () => {
     <div className="p-4 lg:p-8 h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Gastos Semanales</h1>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-[#F85149] hover:bg-[#ff6a62] text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
         >
@@ -2677,7 +3207,7 @@ const ExpensesView = () => {
               <div className="font-medium text-[#E6EDF3] text-lg leading-tight pr-2">{exp.desc}</div>
               <div className="text-[#E6EDF3] font-mono font-bold">{formatCurrency(exp.amount)}</div>
             </div>
-            
+
             <div className="flex justify-between items-center text-sm text-[#8B949E]">
               <div className="flex items-center gap-2">
                 <Calendar size={14} />
@@ -2690,9 +3220,9 @@ const ExpensesView = () => {
 
             <div className="mt-3 pt-3 border-t border-[#30363D] flex items-center gap-2 text-sm text-[#8B949E]">
               <div className="flex items-center gap-1">
-                {exp.method === 'Efectivo' ? <DollarSign size={14} className="text-[#3FB950]" /> : 
-                 exp.method === 'Transferencia' ? <CheckCircle size={14} className="text-[#1F6FEB]" /> : 
-                 <CreditCard size={14} className="text-[#C8A951]" />}
+                {exp.method === 'Efectivo' ? <DollarSign size={14} className="text-[#3FB950]" /> :
+                  exp.method === 'Transferencia' ? <CheckCircle size={14} className="text-[#1F6FEB]" /> :
+                    <CreditCard size={14} className="text-[#C8A951]" />}
                 <span>{exp.method}</span>
               </div>
             </div>
@@ -2784,11 +3314,11 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen bg-[#0D1117] text-[#E6EDF3] font-sans">
-      <Sidebar 
-        activeView={currentView} 
-        onChangeView={handleNavigate} 
-        user={currentUser} 
-        onLogout={handleLogout} 
+      <Sidebar
+        activeView={currentView}
+        onChangeView={handleNavigate}
+        user={currentUser}
+        onLogout={handleLogout}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
@@ -2810,11 +3340,30 @@ export default function App() {
           {currentView === 'AGENDA' && <AgendaView onSelectEvent={handleSelectEvent} />}
           {currentView === 'EVENTOS' && <EventListView onSelectEvent={handleSelectEvent} onCreateEvent={() => handleNavigate('NUEVO_EVENTO')} user={currentUser} />}
           {currentView === 'NUEVO_EVENTO' && <CreateEventView onBack={() => handleNavigate('EVENTOS')} />}
-          {currentView === 'FICHA' && <EventDetailView eventId={selectedEventId} onBack={() => handleNavigate('EVENTOS')} user={currentUser} />}
+          {currentView === 'FICHA' && (
+            currentUser.role === 'CATERING' ? (
+              <div className="p-4 lg:p-8">
+                <button onClick={() => handleNavigate('EVENTOS')} className="text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1 mb-6">
+                  <ChevronLeft size={20} /> Volver
+                </button>
+                <CateringEventDetailView eventData={{
+                  title: "Quinceañera Valentina Suárez",
+                  date: "Viernes 07 de marzo de 2025",
+                  time: "21:00 hs — 04:00 hs",
+                  salon: "Vicenzo",
+                  guests: { confirmed: 155 }
+                }} />
+              </div>
+            ) : (
+              <EventDetailView eventId={selectedEventId} onBack={() => handleNavigate('EVENTOS')} user={currentUser} />
+            )
+          )}
           {currentView === 'CATALOGO' && <CatalogView />}
           {currentView === 'PAGOS' && <PaymentsView onSelectEvent={handleSelectEvent} />}
           {currentView === 'REPORTES' && <ReportsView />}
           {currentView === 'GASTOS' && <ExpensesView />}
+          {currentView === 'LIQUIDACIONES' && <LiquidacionesView />}
+          {currentView === 'CONFIGURACION' && <UsersView currentUser={currentUser!} />}
         </div>
       </main>
     </div>
