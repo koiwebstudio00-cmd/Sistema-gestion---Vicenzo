@@ -456,6 +456,16 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
     }
   };
 
+  const getCategoryColorHex = (cat?: EventCategory) => {
+    switch (cat) {
+      case 'QUINCEANERA': return '#E91E8C';
+      case 'CASAMIENTO': return '#1F6FEB';
+      case 'CUMPLEANOS': return '#C8A951';
+      case 'CORPORATIVO': return '#6B7280';
+      default: return '#8B5CF6';
+    }
+  };
+
   // Mobile: Get events for selected date and upcoming
   const selectedDateEvents = getEventsForDay(selectedDate);
   const upcomingEvents = EVENTS_DATA.filter(e => {
@@ -599,23 +609,13 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                       const hasEvents = dayEvents.length > 0;
                       const event = hasEvents ? dayEvents[0] : null;
 
-                      // Category Colors
-                      const getCategoryColor = (cat?: EventCategory) => {
-                        switch (cat) {
-                          case 'QUINCEANERA': return '#E91E8C';
-                          case 'CASAMIENTO': return '#1F6FEB';
-                          case 'CUMPLEANOS': return '#C8A951';
-                          case 'CORPORATIVO': return '#6B7280';
-                          default: return '#8B5CF6';
-                        }
-                      };
 
                       return (
                         <div key={day} className="flex justify-center items-center h-6 relative">
                           <div
                             className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] transition-all
                               ${hasEvents ? 'font-bold text-white shadow-sm' : 'text-[#8B949E]'}`}
-                            style={hasEvents ? { backgroundColor: getCategoryColor(event?.category) } : {}}
+                            style={hasEvents ? { backgroundColor: getCategoryColorHex(event?.category) } : {}}
                           >
                             {day}
                           </div>
@@ -670,7 +670,13 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                     const dayEvents = getEventsForDay(day);
                     return (
                       <div key={day} className="border-b border-r border-[#30363D] p-2 min-h-[100px] relative group hover:bg-[#30363D]/10 transition-colors">
-                        <span className={`text-sm font-medium ${dayEvents.length > 0 ? 'text-[#E6EDF3]' : 'text-[#8B949E]'}`}>{day}</span>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all mb-2
+                            ${dayEvents.length > 0 ? 'font-bold text-white shadow-sm' : 'text-[#8B949E]'}`}
+                          style={dayEvents.length > 0 ? { backgroundColor: getCategoryColorHex(dayEvents[0].category) } : {}}
+                        >
+                          {day}
+                        </div>
                         <div className="mt-2 space-y-1.5">
                           {dayEvents.map(event => {
                             const statusLabel = event.status === 'RESERVADO_PENDIENTE' ? 'RESERVADO PENDIENTE' : event.status === 'SENADO' ? 'SEÑADO' : event.status;
@@ -729,13 +735,13 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                       <button
                         onClick={() => setSelectedDate(day)}
                         className={`
-                       w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all relative
-                       ${isSelected ? 'bg-[#1F6FEB] text-white shadow-[0_0_10px_rgba(31,111,235,0.4)]' : 'text-[#E6EDF3] hover:bg-[#161B22]'}
-                       ${!isSelected && hasEvents ? 'text-[#C8A951] font-bold' : ''}
-                     `}
+                          w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all relative
+                          ${isSelected ? 'ring-2 ring-offset-2 ring-offset-[#0D1117] ring-[#C8A951] z-10' : ''}
+                          ${hasEvents ? 'font-bold text-white shadow-sm' : 'text-[#E6EDF3]'}
+                        `}
+                        style={hasEvents ? { backgroundColor: getCategoryColorHex(getEventsForDay(day)[0].category) } : {}}
                       >
                         {day}
-                        {!isSelected && hasEvents && <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[#C8A951]" />}
                       </button>
                     </div>
                   );
