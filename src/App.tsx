@@ -21,8 +21,8 @@ interface User {
   role: UserRole;
 }
 
-type EventStatus = 'CONFIRMADO' | 'SENADO' | 'RESERVADO_PENDIENTE' | 'CANCELADO';
-type EventCategory = 'CASAMIENTO' | 'QUINCEANERA' | 'CUMPLEANOS' | 'CORPORATIVO';
+type EventStatus = 'CONFIRMADO' | 'PAGADO' | 'POR_SENAR' | 'CANCELADO';
+type EventCategory = 'CASAMIENTO' | 'QUINCEANERA' | 'CUMPLEANOS' | 'CORPORATIVO' | 'OTRO';
 
 interface Event {
   id: string;
@@ -60,44 +60,44 @@ const USERS: User[] = [
 const EVENTS_DATA: Event[] = [
   // MARZO
   { id: '1', title: 'Casamiento Rodríguez-Pérez', date: '2026-03-01', category: 'CASAMIENTO', guests: 200, status: 'CONFIRMADO', balance: 0, total: 15000000, paid: 15000000 },
-  { id: '2', title: 'Quinceañera Valentina Suárez', date: '2026-03-07', category: 'QUINCEANERA', guests: 160, status: 'SENADO', balance: 4800000, total: 18200000, paid: 13400000 },
-  { id: '3', title: 'Cumpleaños Empresarial TechCorp', date: '2026-03-08', category: 'CORPORATIVO', guests: 180, status: 'SENADO', balance: -125000, total: 19800000, paid: 19925000 }, // Balance a favor (A cuenta)
-  { id: '4', title: 'Quinceañera Isabella Torres', date: '2026-03-14', category: 'QUINCEANERA', guests: 140, status: 'RESERVADO_PENDIENTE', balance: 12400000, total: 16500000, paid: 4100000 }, // Deuda alta (Debe)
+  { id: '2', title: 'Quinceañera Valentina Suárez', date: '2026-03-07', category: 'QUINCEANERA', guests: 160, status: 'PAGADO', balance: 4800000, total: 18200000, paid: 13400000 },
+  { id: '3', title: 'Cumpleaños Empresarial TechCorp', date: '2026-03-08', category: 'CORPORATIVO', guests: 180, status: 'PAGADO', balance: -125000, total: 19800000, paid: 19925000 }, // Balance a favor (A cuenta)
+  { id: '4', title: 'Quinceañera Isabella Torres', date: '2026-03-14', category: 'QUINCEANERA', guests: 140, status: 'POR_SENAR', balance: 12400000, total: 16500000, paid: 4100000 }, // Deuda alta (Debe)
   { id: '5', title: 'Casamiento Moreno-Giuliani', date: '2026-03-15', category: 'CASAMIENTO', guests: 220, status: 'CONFIRMADO', balance: 0, total: 22800000, paid: 22800000 }, // Saldado
-  { id: '6', title: 'Cumpleaños 50 — Roberto Paz', date: '2026-03-21', category: 'CUMPLEANOS', guests: 170, status: 'SENADO', balance: -45000, total: 14500000, paid: 14545000 }, // Pequeño a favor (A cuenta)
+  { id: '6', title: 'Cumpleaños 50 — Roberto Paz', date: '2026-03-21', category: 'CUMPLEANOS', guests: 170, status: 'PAGADO', balance: -45000, total: 14500000, paid: 14545000 }, // Pequeño a favor (A cuenta)
   { id: '7', title: 'Quinceañera Luciana Martínez', date: '2026-03-22', category: 'QUINCEANERA', guests: 190, status: 'CONFIRMADO', balance: 1200000, total: 17800000, paid: 16600000 }, // Deuda pendiente (Debe)
-  { id: '8', title: 'Casamiento Blanco-Fernández', date: '2026-03-29', category: 'CASAMIENTO', guests: 210, status: 'SENADO', balance: 8900000, total: 21400000, paid: 12500000 },
+  { id: '8', title: 'Casamiento Blanco-Fernández', date: '2026-03-29', category: 'CASAMIENTO', guests: 210, status: 'PAGADO', balance: 8900000, total: 21400000, paid: 12500000 },
   // ABRIL
   { id: '9', title: 'Casamiento López-García', date: '2026-04-05', category: 'CASAMIENTO', guests: 180, status: 'CONFIRMADO', balance: 0, total: 16000000, paid: 16000000 },
-  { id: '10', title: 'Quinceañera Sofía Méndez', date: '2026-04-12', category: 'QUINCEANERA', guests: 150, status: 'SENADO', balance: 5000000, total: 17000000, paid: 12000000 },
+  { id: '10', title: 'Quinceañera Sofía Méndez', date: '2026-04-12', category: 'QUINCEANERA', guests: 150, status: 'PAGADO', balance: 5000000, total: 17000000, paid: 12000000 },
   { id: '11', title: 'Cumpleaños 40 — Ana Ruiz', date: '2026-04-19', category: 'CUMPLEANOS', guests: 100, status: 'CONFIRMADO', balance: 0, total: 8000000, paid: 8000000 },
-  { id: '12', title: 'Evento Corporativo Banco Macro', date: '2026-04-25', category: 'CORPORATIVO', guests: 250, status: 'RESERVADO_PENDIENTE', balance: 20000000, total: 25000000, paid: 5000000 },
+  { id: '12', title: 'Evento Corporativo Banco Macro', date: '2026-04-25', category: 'CORPORATIVO', guests: 250, status: 'POR_SENAR', balance: 20000000, total: 25000000, paid: 5000000 },
   // MAYO
-  { id: '13', title: 'Casamiento Pérez-Sánchez', date: '2026-05-03', category: 'CASAMIENTO', guests: 200, status: 'SENADO', balance: 10000000, total: 20000000, paid: 10000000 },
+  { id: '13', title: 'Casamiento Pérez-Sánchez', date: '2026-05-03', category: 'CASAMIENTO', guests: 200, status: 'PAGADO', balance: 10000000, total: 20000000, paid: 10000000 },
   { id: '14', title: 'Quinceañera Camila Fernández', date: '2026-05-10', category: 'QUINCEANERA', guests: 160, status: 'CONFIRMADO', balance: 0, total: 18000000, paid: 18000000 },
-  { id: '15', title: 'Cumpleaños 18 — Juan Pérez', date: '2026-05-17', category: 'CUMPLEANOS', guests: 120, status: 'SENADO', balance: 4000000, total: 10000000, paid: 6000000 },
+  { id: '15', title: 'Cumpleaños 18 — Juan Pérez', date: '2026-05-17', category: 'CUMPLEANOS', guests: 120, status: 'PAGADO', balance: 4000000, total: 10000000, paid: 6000000 },
   { id: '16', title: 'Evento Corporativo Google', date: '2026-05-24', category: 'CORPORATIVO', guests: 300, status: 'CONFIRMADO', balance: 0, total: 30000000, paid: 30000000 },
   // JUNIO
-  { id: '17', title: 'Casamiento Gómez-Martínez', date: '2026-06-07', category: 'CASAMIENTO', guests: 220, status: 'RESERVADO_PENDIENTE', balance: 15000000, total: 22000000, paid: 7000000 },
-  { id: '18', title: 'Quinceañera Valentina López', date: '2026-06-14', category: 'QUINCEANERA', guests: 180, status: 'SENADO', balance: 8000000, total: 19000000, paid: 11000000 },
+  { id: '17', title: 'Casamiento Gómez-Martínez', date: '2026-06-07', category: 'CASAMIENTO', guests: 220, status: 'POR_SENAR', balance: 15000000, total: 22000000, paid: 7000000 },
+  { id: '18', title: 'Quinceañera Valentina López', date: '2026-06-14', category: 'QUINCEANERA', guests: 180, status: 'PAGADO', balance: 8000000, total: 19000000, paid: 11000000 },
   { id: '19', title: 'Cumpleaños 60 — María García', date: '2026-06-21', category: 'CUMPLEANOS', guests: 150, status: 'CONFIRMADO', balance: 0, total: 12000000, paid: 12000000 },
   // JULIO
-  { id: '20', title: 'Casamiento Ruiz-Sánchez', date: '2026-07-05', category: 'CASAMIENTO', guests: 200, status: 'SENADO', balance: 10000000, total: 20000000, paid: 10000000 },
+  { id: '20', title: 'Casamiento Ruiz-Sánchez', date: '2026-07-05', category: 'CASAMIENTO', guests: 200, status: 'PAGADO', balance: 10000000, total: 20000000, paid: 10000000 },
   { id: '21', title: 'Quinceañera Sofía Pérez', date: '2026-07-12', category: 'QUINCEANERA', guests: 160, status: 'CONFIRMADO', balance: 0, total: 18000000, paid: 18000000 },
   // AGOSTO
-  { id: '22', title: 'Cumpleaños 50 — Carlos Fernández', date: '2026-08-02', category: 'CUMPLEANOS', guests: 120, status: 'SENADO', balance: 4000000, total: 10000000, paid: 6000000 },
+  { id: '22', title: 'Cumpleaños 50 — Carlos Fernández', date: '2026-08-02', category: 'CUMPLEANOS', guests: 120, status: 'PAGADO', balance: 4000000, total: 10000000, paid: 6000000 },
   { id: '23', title: 'Evento Corporativo Amazon', date: '2026-08-09', category: 'CORPORATIVO', guests: 300, status: 'CONFIRMADO', balance: 0, total: 30000000, paid: 30000000 },
   // SEPTIEMBRE
-  { id: '24', title: 'Casamiento Martínez-Gómez', date: '2026-09-06', category: 'CASAMIENTO', guests: 220, status: 'RESERVADO_PENDIENTE', balance: 15000000, total: 22000000, paid: 7000000 },
-  { id: '25', title: 'Quinceañera Valentina Ruiz', date: '2026-09-13', category: 'QUINCEANERA', guests: 180, status: 'SENADO', balance: 8000000, total: 19000000, paid: 11000000 },
+  { id: '24', title: 'Casamiento Martínez-Gómez', date: '2026-09-06', category: 'CASAMIENTO', guests: 220, status: 'POR_SENAR', balance: 15000000, total: 22000000, paid: 7000000 },
+  { id: '25', title: 'Quinceañera Valentina Ruiz', date: '2026-09-13', category: 'QUINCEANERA', guests: 180, status: 'PAGADO', balance: 8000000, total: 19000000, paid: 11000000 },
   // OCTUBRE
   { id: '26', title: 'Cumpleaños 40 — Ana López', date: '2026-10-04', category: 'CUMPLEANOS', guests: 100, status: 'CONFIRMADO', balance: 0, total: 8000000, paid: 8000000 },
-  { id: '27', title: 'Evento Corporativo Facebook', date: '2026-10-11', category: 'CORPORATIVO', guests: 250, status: 'RESERVADO_PENDIENTE', balance: 20000000, total: 25000000, paid: 5000000 },
+  { id: '27', title: 'Evento Corporativo Facebook', date: '2026-10-11', category: 'CORPORATIVO', guests: 250, status: 'POR_SENAR', balance: 20000000, total: 25000000, paid: 5000000 },
   // NOVIEMBRE
-  { id: '28', title: 'Casamiento Sánchez-Pérez', date: '2026-11-01', category: 'CASAMIENTO', guests: 200, status: 'SENADO', balance: 10000000, total: 20000000, paid: 10000000 },
+  { id: '28', title: 'Casamiento Sánchez-Pérez', date: '2026-11-01', category: 'CASAMIENTO', guests: 200, status: 'PAGADO', balance: 10000000, total: 20000000, paid: 10000000 },
   { id: '29', title: 'Quinceañera Camila Gómez', date: '2026-11-08', category: 'QUINCEANERA', guests: 160, status: 'CONFIRMADO', balance: 0, total: 18000000, paid: 18000000 },
   // DICIEMBRE
-  { id: '30', title: 'Cumpleaños 18 — Juan Ruiz', date: '2026-12-06', category: 'CUMPLEANOS', guests: 120, status: 'SENADO', balance: 4000000, total: 10000000, paid: 6000000 },
+  { id: '30', title: 'Cumpleaños 18 — Juan Ruiz', date: '2026-12-06', category: 'CUMPLEANOS', guests: 120, status: 'PAGADO', balance: 4000000, total: 10000000, paid: 6000000 },
   { id: '31', title: 'Evento Corporativo Apple', date: '2026-12-13', category: 'CORPORATIVO', guests: 300, status: 'CONFIRMADO', balance: 0, total: 30000000, paid: 30000000 },
 ];
 
@@ -141,7 +141,10 @@ const CATALOG_DATA: ServiceItem[] = [
   { id: 'd6', category: 'DECORACIÓN', name: 'Guirnaldas exterior', priceArs: 20000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 'd7', category: 'DECORACIÓN', name: 'Buzón', priceArs: 10000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 'd8', category: 'DECORACIÓN', name: 'Cabina fotográfica (3 horas)', priceArs: 100000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
+  { id: 'tax1', category: 'IMPUESTOS', name: 'IVA', priceArs: 200000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
 ];
+
+const PACK_PREMIUM_ITEMS = ['t3', 't4', 't5', 't6', 't7'];
 
 // --- HELPERS ---
 
@@ -429,6 +432,15 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
+  const yearOptions = useMemo(() => {
+    const years = [];
+    const thisYear = new Date().getFullYear();
+    for (let y = thisYear - 2; y <= thisYear + 5; y++) {
+      years.push({ value: y.toString(), label: y.toString() });
+    }
+    return years;
+  }, []);
+
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const startDay = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7; // Shift to start on Monday
 
@@ -438,7 +450,9 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
   const getEventsForDay = (day: number) => {
     const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     return EVENTS_DATA.filter(e => {
+      const eventDate = new Date(e.date);
       const matchesDate = e.date === dateStr;
+      const matchesYear = eventDate.getFullYear() === currentYear;
       const matchesCategory = filterCategory === 'ALL' || e.category === filterCategory;
       const matchesStatus = filterStatus === 'ALL' || e.status === filterStatus;
 
@@ -452,6 +466,7 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
       case 'CASAMIENTO': return 'bg-[#1F6FEB]/20 border-l-2 border-[#1F6FEB] text-[#E6EDF3]';
       case 'CUMPLEANOS': return 'bg-[#C8A951]/20 border-l-2 border-[#C8A951] text-[#E6EDF3]';
       case 'CORPORATIVO': return 'bg-[#6B7280]/20 border-l-2 border-[#6B7280] text-[#E6EDF3]';
+      case 'OTRO': return 'bg-[#22C55E]/20 border-l-2 border-[#22C55E] text-[#E6EDF3]';
       default: return 'bg-[#8B5CF6]/20 border-l-2 border-[#8B5CF6] text-[#E6EDF3]';
     }
   };
@@ -462,6 +477,7 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
       case 'CASAMIENTO': return '#1F6FEB';
       case 'CUMPLEANOS': return '#C8A951';
       case 'CORPORATIVO': return '#6B7280';
+      case 'OTRO': return '#22C55E';
       default: return '#8B5CF6';
     }
   };
@@ -534,6 +550,20 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                 <option value="QUINCEANERA">15 Años (Rosa)</option>
                 <option value="CUMPLEANOS">Cumpleaños (Dorado)</option>
                 <option value="CORPORATIVO">Corporativo (Gris)</option>
+                <option value="OTRO">Otro (Verde)</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-2.5 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
+            </div>
+
+            <div className="relative flex-1 sm:flex-none w-full sm:w-auto">
+              <select
+                value={currentYear.toString()}
+                onChange={(e) => setCurrentYear(parseInt(e.target.value))}
+                className="w-full sm:w-auto bg-[#161B22] border border-[#30363D] text-[#E6EDF3] text-sm rounded-lg pl-3 pr-8 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
+              >
+                {yearOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
               <ChevronDown className="absolute right-3 top-2.5 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
             </div>
@@ -546,8 +576,8 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
               >
                 <option value="ALL">Todos los estados</option>
                 <option value="CONFIRMADO">Confirmado</option>
-                <option value="SENADO">Señado</option>
-                <option value="RESERVADO_PENDIENTE">Reservado pendiente</option>
+                <option value="PAGADO">Pagado</option>
+                <option value="POR_SENAR">Por señar</option>
                 <option value="CANCELADO">Cancelado</option>
               </select>
               <ChevronDown className="absolute right-3 top-2.5 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
@@ -646,6 +676,7 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                 <option value="QUINCEANERA">Quinceañera</option>
                 <option value="CUMPLEANOS">Cumpleaños</option>
                 <option value="CORPORATIVO">Corporativo</option>
+                <option value="OTRO">Otro</option>
               </select>
               <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
             </div>
@@ -679,7 +710,7 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
                         </div>
                         <div className="mt-2 space-y-1.5">
                           {dayEvents.map(event => {
-                            const statusLabel = event.status === 'RESERVADO_PENDIENTE' ? 'RESERVADO PENDIENTE' : event.status === 'SENADO' ? 'SEÑADO' : event.status;
+                            const statusLabel = event.status === 'POR_SENAR' ? 'POR SEÑAR' : event.status === 'PAGADO' ? 'PAGADO' : event.status;
                             return (
                               <div
                                 key={event.id}
@@ -782,11 +813,11 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
 
                       <div className="text-right shrink-0">
                         <span className={`text-xs font-bold px-2 py-1 rounded border ${event.status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 text-[#3FB950] border-[#3FB950]/20' :
-                          event.status === 'SENADO' ? 'bg-[#C8A951]/10 text-[#C8A951] border-[#C8A951]/20' :
+                          event.status === 'PAGADO' ? 'bg-[#C8A951]/10 text-[#C8A951] border-[#C8A951]/20' :
                             event.status === 'CANCELADO' ? 'bg-[#F85149]/10 text-[#F85149] border-[#F85149]/20' :
                               'bg-[#D29922]/10 text-[#D29922] border-[#D29922]/20'
                           }`}>
-                          {event.status === 'CONFIRMADO' ? 'CONF' : event.status === 'SENADO' ? 'SEÑADO' : event.status === 'CANCELADO' ? 'CANC' : 'RES.PEND'}
+                          {event.status === 'CONFIRMADO' ? 'CONF' : event.status === 'PAGADO' ? 'PAGADO' : event.status === 'CANCELADO' ? 'CANC' : 'P.SEÑAR'}
                         </span>
                       </div>
                     </div>
@@ -807,16 +838,36 @@ const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) 
 
 const CreateEventView = ({ onBack }: { onBack: () => void }) => {
   const [activeCategory, setActiveCategory] = useState<string>('TÉCNICA & SONIDO');
-  const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
+  const [selectedServices, setSelectedServices] = useState<{item: ServiceItem, qty: number}[]>([]);
+  const [eventType, setEventType] = useState<string>('Casamiento');
+  const [packWarning, setPackWarning] = useState<string | null>(null);
+
+  const isPackPremiumActive = selectedServices.some(s => s.item.id === 't8');
 
   const categories = Array.from(new Set(CATALOG_DATA.map(item => item.category)));
 
   const toggleService = (item: ServiceItem) => {
-    if (selectedServices.find(s => s.id === item.id)) {
-      setSelectedServices(selectedServices.filter(s => s.id !== item.id));
+    // Si el item está incluido en el pack y el pack está activo, no permitir toggle individual
+    if (isPackPremiumActive && PACK_PREMIUM_ITEMS.includes(item.id)) return;
+
+    if (selectedServices.find(s => s.item.id === item.id)) {
+      setSelectedServices(selectedServices.filter(s => s.item.id !== item.id));
     } else {
-      setSelectedServices([...selectedServices, item]);
+      if (item.id === 't8') {
+        const alreadySelected = selectedServices.filter(s => PACK_PREMIUM_ITEMS.includes(s.item.id));
+        if (alreadySelected.length > 0) {
+          setPackWarning("Estos servicios ya estaban agregados individualmente. Al activar el pack quedan incluidos sin costo extra.");
+          setTimeout(() => setPackWarning(null), 5000);
+        }
+      }
+      setSelectedServices([...selectedServices, { item, qty: 1 }]);
     }
+  };
+
+  const updateServiceQty = (itemId: string, qty: number) => {
+    setSelectedServices(prev => prev.map(s => 
+      s.item.id === itemId ? { ...s, qty: Math.max(1, qty) } : s
+    ));
   };
 
   return (
@@ -848,11 +899,16 @@ const CreateEventView = ({ onBack }: { onBack: () => void }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#8B949E] mb-1">Categoría</label>
-                <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
-                  <option>Casamiento</option>
-                  <option>Quinceañera</option>
-                  <option>Cumpleaños</option>
-                  <option>Corporativo</option>
+                <select 
+                  value={eventType}
+                  onChange={(e) => setEventType(e.target.value)}
+                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none"
+                >
+                  <option value="Casamiento">Casamiento</option>
+                  <option value="Quinceañera">Quinceañera</option>
+                  <option value="Cumpleaños">Cumpleaños</option>
+                  <option value="Corporativo">Corporativo</option>
+                  <option value="Otro">Otro</option>
                 </select>
               </div>
               <div>
@@ -903,7 +959,6 @@ const CreateEventView = ({ onBack }: { onBack: () => void }) => {
             </div>
           </div>
 
-          {/* Section 4: Cliente */}
           <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
             <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Datos del Cliente</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -911,8 +966,47 @@ const CreateEventView = ({ onBack }: { onBack: () => void }) => {
                 <label className="block text-sm font-medium text-[#8B949E] mb-1">Responsable Principal</label>
                 <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Nombre completo" />
               </div>
+
+              {eventType === 'Quinceañera' && (
+                <>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-[#8B949E] mb-1">Colegio</label>
+                    <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Nombre del colegio" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#8B949E] mb-1">Nombre del padre</label>
+                    <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Nombre completo" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#8B949E] mb-1">Nombre de la madre</label>
+                    <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Nombre completo" />
+                  </div>
+                </>
+              )}
+
+              {eventType === 'Casamiento' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-[#8B949E] mb-1">Nombre del padre 1</label>
+                    <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Nombre completo" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#8B949E] mb-1">Nombre del padre 2</label>
+                    <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Nombre completo" />
+                  </div>
+                </>
+              )}
+
               <div>
-                <label className="block text-sm font-medium text-[#8B949E] mb-1">Teléfono</label>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">DNI (Opcional)</label>
+                <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="Sin puntos" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">CUIT (Opcional)</label>
+                <input type="text" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="00-00000000-0" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Teléfonos</label>
                 <input type="tel" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="381..." />
               </div>
               <div>
@@ -922,16 +1016,73 @@ const CreateEventView = ({ onBack }: { onBack: () => void }) => {
             </div>
           </div>
 
-          {/* Section 5: Observaciones */}
+          {(selectedServices.some(s => s.id === 't1') || selectedServices.some(s => s.id === 't2')) && (
+            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+              <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Monto de Señas Iniciales</h4>
+              <div className="space-y-4">
+                {selectedServices.find(s => s.id === 't1') && (
+                  <div>
+                    <label className="block text-sm font-medium text-[#8B949E] mb-1">Seña Alquiler de Salón</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-[#8B949E]">$</span>
+                      <input type="number" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-8 pr-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="0" />
+                    </div>
+                  </div>
+                )}
+                {selectedServices.find(s => s.id === 't2') && (
+                  <div>
+                    <label className="block text-sm font-medium text-[#8B949E] mb-1">Seña Música y Luces</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-[#8B949E]">$</span>
+                      <input type="number" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-8 pr-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="0" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Section 5: Personal */}
           <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-            <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Observaciones</h4>
-            <textarea className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none h-24" placeholder="Notas adicionales..."></textarea>
+            <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Personal</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#8B949E] mb-1">Cantidad de mozos</label>
+                <input 
+                  type="number" 
+                  min="0" 
+                  defaultValue="2"
+                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" 
+                  placeholder="0" 
+                />
+                <p className="text-[10px] text-[#8B949E] mt-1">Se cargará automáticamente en el presupuesto</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 6: Observaciones */}
+          <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 space-y-4">
+            <div>
+              <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1">Observaciones Generales</h4>
+              <textarea className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none h-20" placeholder="Logística, mobiliario, detalles generales..."></textarea>
+            </div>
+            <div>
+              <h4 className="text-[#C8A951] font-display font-medium mb-3 border-b border-[#30363D] pb-1 flex items-center gap-2">
+                <FileText size={16} /> Observaciones para Catering
+              </h4>
+              <textarea className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none h-20" placeholder="Menús especiales, horarios de cocina, restricciones..."></textarea>
+            </div>
           </div>
         </div>
 
         {/* Right Column: Services (Fixed/Scrollable) */}
         <div className="lg:col-span-7 flex flex-col bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden h-[500px] lg:h-auto">
           <div className="p-4 border-b border-[#30363D] bg-[#0D1117]">
+            {packWarning && (
+              <div className="mb-3 p-2 bg-[#C8A951]/10 border border-[#C8A951]/30 rounded text-[#C8A951] text-[11px] font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                <AlertTriangle size={14} /> {packWarning}
+              </div>
+            )}
             <h3 className="text-[#E6EDF3] font-display font-semibold mb-4">Selección de Servicios</h3>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {categories.map(cat => (
@@ -952,24 +1103,50 @@ const CreateEventView = ({ onBack }: { onBack: () => void }) => {
           <div className="flex-1 overflow-y-auto p-2">
             <div className="space-y-2">
               {CATALOG_DATA.filter(item => item.category === activeCategory).map(item => {
-                const isSelected = selectedServices.some(s => s.id === item.id);
+                const isIncludedInPack = isPackPremiumActive && PACK_PREMIUM_ITEMS.includes(item.id);
+                const selectedEntry = selectedServices.find(s => s.item.id === item.id);
+                const isSelected = !!selectedEntry || isIncludedInPack;
+                const isDisabled = isIncludedInPack && item.id !== 't8';
+
                 return (
                   <div key={item.id}
-                    onClick={() => toggleService(item)}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between group ${isSelected
+                    className={`p-3 rounded-lg border transition-all flex items-center justify-between group ${isSelected
                       ? 'bg-[#C8A951]/10 border-[#C8A951] shadow-[0_0_10px_rgba(200,169,81,0.1)]'
                       : 'bg-[#0D1117] border-[#30363D] hover:border-[#8B949E]'
-                      }`}
+                      } ${isDisabled ? 'opacity-80 cursor-default' : 'cursor-pointer'}`}
                   >
-                    <div>
-                      <div className={`font-medium ${isSelected ? 'text-[#C8A951]' : 'text-[#E6EDF3]'}`}>{item.name}</div>
+                    <div onClick={() => !isDisabled && toggleService(item)} className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className={`font-medium ${isSelected ? 'text-[#C8A951]' : 'text-[#E6EDF3]'}`}>{item.name}</div>
+                        {isIncludedInPack && (
+                          <span className="bg-[#C8A951] text-[#0D1117] text-[9px] font-bold px-1.5 py-0.5 rounded leading-none">INCLUIDO EN PACK</span>
+                        )}
+                      </div>
                       <div className="text-xs text-[#8B949E] mt-0.5">
-                        {item.priceArs ? formatCurrency(item.priceArs) : (item.priceUsd ? `USD ${item.priceUsd}` : 'Consultar')}
+                        {isIncludedInPack ? 'S/C' : (item.priceArs ? formatCurrency(item.priceArs) : (item.priceUsd ? `USD ${item.priceUsd}` : 'Consultar'))}
+                        {isSelected && !isIncludedInPack && item.priceArs && item.priceArs > 0 && <span className="ml-2 text-[#C8A951]">Total: {formatCurrency(item.priceArs * (selectedEntry?.qty || 1))}</span>}
                       </div>
                     </div>
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#C8A951] border-[#C8A951]' : 'border-[#8B949E] group-hover:border-[#E6EDF3]'
-                      }`}>
-                      {isSelected && <CheckCircle size={14} className="text-[#0D1117]" />}
+                    
+                    <div className="flex items-center gap-3">
+                      {isSelected && !isDisabled && !isIncludedInPack && !item.name.toLowerCase().includes('iva') && (
+                        <div className="flex items-center gap-1 bg-[#0D1117] border border-[#30363D] rounded p-0.5">
+                          <input 
+                            type="number" 
+                            min="1"
+                            value={selectedEntry?.qty || 1}
+                            onChange={(e) => updateServiceQty(item.id, parseInt(e.target.value))}
+                            className="w-10 bg-transparent text-[#E6EDF3] text-center text-xs focus:outline-none"
+                          />
+                          <span className="text-[10px] text-[#8B949E] pr-1">un.</span>
+                        </div>
+                      )}
+                      <div 
+                        onClick={() => !isDisabled && toggleService(item)}
+                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-[#C8A951] border-[#C8A951]' : 'border-[#8B949E] group-hover:border-[#E6EDF3]'
+                        } ${isDisabled ? 'bg-[#C8A951]/50 border-none' : ''}`}>
+                        {isSelected && <CheckCircle size={14} className="text-[#0D1117]" />}
+                      </div>
                     </div>
                   </div>
                 );
@@ -982,7 +1159,7 @@ const CreateEventView = ({ onBack }: { onBack: () => void }) => {
             <div className="flex justify-between items-center text-sm">
               <span className="text-[#8B949E]">{selectedServices.length} servicios seleccionados</span>
               <span className="text-[#E6EDF3] font-mono font-bold">
-                Total estimado: {formatCurrency(selectedServices.reduce((acc, curr) => acc + (curr.priceArs || 0), 0))}
+                Total estimado: {formatCurrency(selectedServices.reduce((acc, curr) => acc + ((curr.item.priceArs || 0) * curr.qty), 0))}
               </span>
             </div>
           </div>
@@ -1006,14 +1183,14 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
   const getStatusBadge = (status: EventStatus) => {
     const styles = {
       'CONFIRMADO': 'bg-[#3FB950]/15 text-[#3FB950] border-[#3FB950]/20',
-      'SENADO': 'bg-[#C8A951]/15 text-[#C8A951] border-[#C8A951]/20',
-      'RESERVADO_PENDIENTE': 'bg-[#D29922]/15 text-[#D29922] border-[#D29922]/20',
+      'PAGADO': 'bg-[#C8A951]/15 text-[#C8A951] border-[#C8A951]/20',
+      'POR_SENAR': 'bg-[#D29922]/15 text-[#D29922] border-[#D29922]/20',
       'CANCELADO': 'bg-[#F85149]/15 text-[#F85149] border-[#F85149]/20',
     };
     const labels: Record<EventStatus, string> = {
       'CONFIRMADO': 'CONFIRMADO',
-      'SENADO': 'SEÑADO',
-      'RESERVADO_PENDIENTE': 'RESERVADO PENDIENTE',
+      'PAGADO': 'PAGADO',
+      'POR_SENAR': 'POR SEÑAR',
       'CANCELADO': 'CANCELADO',
     };
     return (
@@ -1058,8 +1235,8 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
           >
             <option value="ALL">Todos los estados</option>
             <option value="CONFIRMADO">Confirmado</option>
-            <option value="SENADO">Señado</option>
-            <option value="RESERVADO_PENDIENTE">Reservado Pendiente</option>
+            <option value="PAGADO">Pagado</option>
+            <option value="POR_SENAR">Por señar</option>
             <option value="CANCELADO">Cancelado</option>
           </select>
           <ChevronDown className="absolute right-3 top-3 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
@@ -1188,7 +1365,7 @@ const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: 
 };
 const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: () => void, user: User }) => {
   const [isPlanillaOpen, setIsPlanillaOpen] = useState(false);
-  const [status, setStatus] = useState<EventStatus>('SENADO');
+  const [status, setStatus] = useState<EventStatus>('PAGADO');
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const isProduction = user.role === 'PRODUCCION' || user.role === 'TIO_FRANCO';
 
@@ -1205,6 +1382,7 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       resp2: "María Elena Suárez",
       address: "Av. Aconquija 1250, Yerba Buena",
       dni: "28.441.920",
+      cuit: "20-28441920-3",
       phone: "381-4521890 / 381-5778234",
       school: "Instituto Nuestra Señora del Huerto",
       decorator: "Carlos Nieto (381-6846518)"
@@ -1215,9 +1393,10 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       kids: 4,
       after: 12
     },
+    createdAt: "2026-02-18",
     senas: [
-      { label: "Alquiler del Salón / Seña", date: "15/01/2026", status: "PAGADA" },
-      { label: "Música, Luces y Pantallas / Seña", date: "22/01/2026", status: "PENDIENTE" }
+      { label: "Alquiler del Salón", date: "15/01/2026", status: "PAGADA", amountPaid: 2000000 },
+      { label: "Música, Luces y Pantallas", date: "22/01/2026", status: "PENDIENTE", amountPaid: 0 }
     ],
     financial: {
       total: 18200000,
@@ -1240,6 +1419,11 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       "10 mesas rectangulares para adultos.",
       "Ceniceros — 2 jóvenes + 3 adultos.",
       "Confirmar decorador 72hs antes del evento."
+    ],
+    cateringObservations: [
+      "Menú sin TACC para 2 invitados adultos.",
+      "Torta de quinceañera llega a las 19:00 hs.",
+      "Servicio de barra libre desde las 00:00 hs hasta cierre."
     ]
   };
 
@@ -1249,6 +1433,11 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       items: [
         { name: "Música, Luces y Pantallas (base)", qty: "1u", price: 1150000, status: "PAGADO", isSena: true },
         { name: "Pack Luces Premium", qty: "1u", price: 740000, status: "A CUENTA" },
+        { name: "Cabina DJ con pantallas en pista", qty: "—", price: 0, status: "incluido", isPackIncluded: true },
+        { name: "Barras Láser Beam", qty: "—", price: 0, status: "incluido", isPackIncluded: true },
+        { name: "Craquera", qty: "—", price: 0, status: "incluido", isPackIncluded: true },
+        { name: "12 Cabezales Aro LED", qty: "—", price: 0, status: "incluido", isPackIncluded: true },
+        { name: "Pantallas Laterales", qty: "—", price: 0, status: "incluido", isPackIncluded: true },
         { name: "Sonido para recepción exterior", qty: "1u", price: 30000, status: "PENDIENTE" },
         { name: "Fuegos — Fontanas escalera", qty: "7u", price: 700, status: "PENDIENTE", unitPrice: true },
         { name: "Fuegos — Fontanas pista", qty: "8u", price: 920, status: "PENDIENTE", unitPrice: true },
@@ -1298,6 +1487,13 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       items: [
         { name: "Mozos", qty: "2u", price: 52000, status: "PENDIENTE", unitPrice: true, required: 4 },
       ]
+    },
+    {
+      category: "IMPUESTOS",
+      isTax: true,
+      items: [
+        { name: "IVA", qty: "", price: 200000, status: "PENDIENTE" },
+      ]
     }
   ];
 
@@ -1325,10 +1521,26 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       }
     }
 
+    // Alerta de vencimiento de congelamiento de precio (30 días desde ticket)
+    const createdAt = new Date(eventData.createdAt);
+    const expirationDate = new Date(createdAt);
+    expirationDate.setDate(createdAt.getDate() + 30);
+    
+    const today = new Date();
+    const diffTime = expirationDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 7 && diffDays >= 0) {
+      list.push({ 
+        type: 'YELLOW', 
+        text: `El precio de seña vence el ${expirationDate.toLocaleDateString('es-AR')}. Confirmar o actualizar antes de esa fecha.` 
+      });
+    }
+
     // Evento en menos de 48hs y saldo pendiente
     const eventTime = new Date(eventData.isoDate + 'T12:00:00').getTime();
-    const now = new Date().getTime();
-    const hoursRemaining = (eventTime - now) / (1000 * 60 * 60);
+    const nowTime = today.getTime();
+    const hoursRemaining = (eventTime - nowTime) / (1000 * 60 * 60);
     if (hoursRemaining < 48 && eventData.financial.pending > 0) {
       list.push({ type: 'RED', text: "Evento próximo con saldo sin cancelar" });
     }
@@ -1340,10 +1552,10 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
   const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
 
   const [paymentForm, setPaymentForm] = useState({
+    service: 'A cuenta general',
     amount: '',
     type: 'A_CUENTA', // SENA, A_CUENTA, SALDO, ADICIONAL
-    method: 'EFECTIVO',
-    notes: ''
+    method: 'EFECTIVO'
   });
 
   const [movementForm, setMovementForm] = useState({
@@ -1359,7 +1571,7 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
     // In a real app, this would call an API
     console.log("Payment submitted:", paymentForm);
     setIsPaymentModalOpen(false);
-    setPaymentForm({ amount: '', type: 'A_CUENTA', method: 'EFECTIVO', notes: '' });
+    setPaymentForm({ service: 'A cuenta general', amount: '', type: 'A_CUENTA', method: 'EFECTIVO' });
   };
 
   const handleMovementSubmit = (e: React.FormEvent) => {
@@ -1379,7 +1591,8 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
     { value: 'SENA', label: 'Seña' },
     { value: 'A_CUENTA', label: 'A cuenta' },
     { value: 'SALDO', label: 'Saldo' },
-    { value: 'ADICIONAL', label: 'Adicional' }
+    { value: 'ADICIONAL', label: 'Adicional' },
+    { value: 'TAX', label: 'IVA / Impuestos' }
   ];
 
   const PlanillaOperativa = () => (
@@ -1512,19 +1725,19 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
               value={status}
               onChange={(e) => setStatus(e.target.value as EventStatus)}
               className={`border font-bold rounded-lg pl-3 pr-8 py-1.5 text-sm appearance-none focus:outline-none ${status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 border-[#3FB950]/30 text-[#3FB950] focus:border-[#3FB950]' :
-                status === 'SENADO' ? 'bg-[#C8A951]/10 border-[#C8A951]/30 text-[#C8A951] focus:border-[#C8A951]' :
-                  status === 'RESERVADO_PENDIENTE' ? 'bg-[#D29922]/10 border-[#D29922]/30 text-[#D29922] focus:border-[#D29922]' :
+                status === 'PAGADO' ? 'bg-[#C8A951]/10 border-[#C8A951]/30 text-[#C8A951] focus:border-[#C8A951]' :
+                  status === 'POR_SENAR' ? 'bg-[#D29922]/10 border-[#D29922]/30 text-[#D29922] focus:border-[#D29922]' :
                     'bg-[#F85149]/10 border-[#F85149]/30 text-[#F85149] focus:border-[#F85149]'
                 }`}
             >
               <option value="CONFIRMADO">CONFIRMADO</option>
-              <option value="SENADO">SEÑADO</option>
-              <option value="RESERVADO_PENDIENTE">RESERVADO PENDIENTE</option>
+              <option value="PAGADO">PAGADO</option>
+              <option value="POR_SENAR">POR SEÑAR</option>
               <option value="CANCELADO">CANCELADO</option>
             </select>
             <ChevronDown className={`absolute right-2 top-2.5 h-3 w-3 pointer-events-none ${status === 'CONFIRMADO' ? 'text-[#3FB950]' :
-              status === 'SENADO' ? 'text-[#C8A951]' :
-                status === 'RESERVADO_PENDIENTE' ? 'text-[#D29922]' :
+              status === 'PAGADO' ? 'text-[#C8A951]' :
+                status === 'POR_SENAR' ? 'text-[#D29922]' :
                   'text-[#F85149]'
               }`} />
           </div>
@@ -1574,19 +1787,19 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
                   value={status}
                   onChange={(e) => setStatus(e.target.value as EventStatus)}
                   className={`border font-bold rounded-lg pl-4 pr-10 py-2 appearance-none focus:outline-none ${status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 border-[#3FB950]/30 text-[#3FB950] focus:border-[#3FB950]' :
-                    status === 'SENADO' ? 'bg-[#C8A951]/10 border-[#C8A951]/30 text-[#C8A951] focus:border-[#C8A951]' :
-                      status === 'RESERVADO_PENDIENTE' ? 'bg-[#D29922]/10 border-[#D29922]/30 text-[#D29922] focus:border-[#D29922]' :
+                    status === 'PAGADO' ? 'bg-[#C8A951]/10 border-[#C8A951]/30 text-[#C8A951] focus:border-[#C8A951]' :
+                      status === 'POR_SENAR' ? 'bg-[#D29922]/10 border-[#D29922]/30 text-[#D29922] focus:border-[#D29922]' :
                         'bg-[#F85149]/10 border-[#F85149]/30 text-[#F85149] focus:border-[#F85149]'
                     }`}
                 >
                   <option value="CONFIRMADO">CONFIRMADO</option>
-                  <option value="SENADO">SEÑADO</option>
-                  <option value="RESERVADO_PENDIENTE">RESERVADO PENDIENTE</option>
+                  <option value="PAGADO">PAGADO</option>
+                  <option value="POR_SENAR">POR SEÑAR</option>
                   <option value="CANCELADO">CANCELADO</option>
                 </select>
                 <ChevronDown className={`absolute right-3 top-3 h-4 w-4 pointer-events-none ${status === 'CONFIRMADO' ? 'text-[#3FB950]' :
-                  status === 'SENADO' ? 'text-[#C8A951]' :
-                    status === 'RESERVADO_PENDIENTE' ? 'text-[#D29922]' :
+                  status === 'PAGADO' ? 'text-[#C8A951]' :
+                    status === 'POR_SENAR' ? 'text-[#D29922]' :
                       'text-[#F85149]'
                   }`} />
               </div>
@@ -1673,16 +1886,7 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
           </div>
         </div>
 
-        {!isProduction && (
-          <div className="w-full md:w-auto">
-            <div className="bg-[#0D1117] border border-[#3FB950]/30 border-l-4 border-l-[#3FB950] rounded-2xl px-5 py-3 shadow-lg flex justify-between items-center md:block">
-              <div className="text-[#8B949E] text-[10px] font-bold uppercase tracking-widest mb-1">TOTAL COBRADO</div>
-              <div className="text-2xl font-display font-bold text-[#3FB950] font-mono">
-                {formatCurrency(eventData.financial.collected)}
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
 
       {/* Tab Panel Overlay/Content */}
@@ -1704,21 +1908,69 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
 
             <div className="max-h-[60vh] overflow-y-auto">
               {activeTab === 'ALERTS' && (
-                <div className="space-y-4">
-                  {alerts.length > 0 ? (
-                    alerts.map((alert, i) => (
-                      <div key={i} className={`p-4 rounded-lg border flex items-center gap-3 ${alert.type === 'RED' ? 'bg-[#F85149]/10 border-[#F85149]/30 text-[#E6EDF3]' : 'bg-[#D29922]/10 border-[#D29922]/30 text-[#E6EDF3]'
-                        }`}>
-                        <AlertTriangle size={20} className={alert.type === 'RED' ? 'text-[#F85149]' : 'text-[#D29922]'} />
-                        <span className="font-medium">{alert.text}</span>
+                <div className="space-y-6">
+                  {/* Active Alerts */}
+                  <div className="space-y-3">
+                    <h4 className="text-[#8B949E] text-xs font-bold uppercase tracking-wider mb-2">Alertas activas</h4>
+                    {alerts.length > 0 ? (
+                      alerts.map((alert, i) => (
+                        <div key={i} className={`p-4 rounded-lg border flex items-center gap-3 ${alert.type === 'RED' ? 'bg-[#F85149]/10 border-[#F85149]/30 text-[#E6EDF3]' : 'bg-[#D29922]/10 border-[#D29922]/30 text-[#E6EDF3]'
+                          }`}>
+                          <AlertTriangle size={20} className={alert.type === 'RED' ? 'text-[#F85149]' : 'text-[#D29922]'} />
+                          <span className="font-medium text-sm">{alert.text}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center bg-[#3FB950]/5 border border-[#3FB950]/20 rounded-xl">
+                        <CheckCircle size={32} className="text-[#3FB950] mx-auto mb-3" />
+                        <span className="text-[#3FB950] font-bold">✅ Sin alertas para este evento</span>
                       </div>
-                    ))
-                  ) : (
-                    <div className="p-8 text-center bg-[#3FB950]/5 border border-[#3FB950]/20 rounded-xl">
-                      <CheckCircle size={32} className="text-[#3FB950] mx-auto mb-3" />
-                      <span className="text-[#3FB950] font-bold">✅ Sin alertas para este evento</span>
+                    )}
+                  </div>
+
+                  {/* Price Freeze & Señas Section */}
+                  <div className="bg-[#0D1117] border border-[#30363D] rounded-xl p-5">
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#30363D]">
+                      <h4 className="text-[#C8A951] font-display font-medium flex items-center gap-2">
+                        <DollarSign size={16} /> Estado de Señas y Congelamiento
+                      </h4>
+                      <div className="text-right">
+                        <span className="text-[#8B949E] text-[10px] block uppercase tracking-wider">Precio válido hasta</span>
+                        <span className="text-[#E6EDF3] font-bold text-sm">
+                          {(() => {
+                            const d = new Date(eventData.createdAt);
+                            d.setDate(d.getDate() + 30);
+                            return d.toLocaleDateString('es-AR');
+                          })()}
+                        </span>
+                      </div>
                     </div>
-                  )}
+
+                    <div className="space-y-4">
+                      {eventData.senas.map((sena, i) => (
+                        <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 bg-[#161B22] rounded-lg border border-[#30363D]/50">
+                          <div>
+                            <div className="text-[#E6EDF3] font-medium text-sm">{sena.label}</div>
+                            <div className="text-[#8B949E] text-xs mt-0.5">Estado: <span className={sena.status === 'PAGADA' ? 'text-[#3FB950]' : 'text-[#F85149]'}>{sena.status}</span></div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <label className="block text-[#8B949E] text-[10px] font-bold uppercase mb-1">Monto de Seña</label>
+                              <div className="relative">
+                                <span className="absolute left-2 top-1.5 text-[#8B949E] text-xs">$</span>
+                                <input 
+                                  type="text" 
+                                  defaultValue={sena.amountPaid || ''}
+                                  placeholder="0"
+                                  className="bg-[#0D1117] border border-[#30363D] rounded px-5 py-1 text-sm text-[#E6EDF3] w-32 focus:border-[#C8A951] focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1743,12 +1995,16 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">DNI</span>
-                        <div className="text-[#E6EDF3] text-base font-mono">{eventData.client.dni}</div>
+                        <div className="text-[#E6EDF3] text-base font-mono">{eventData.client.dni || '—'}</div>
                       </div>
                       <div>
-                        <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">Teléfonos</span>
-                        <div className="text-[#E6EDF3] text-base font-mono">{eventData.client.phone}</div>
+                        <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">CUIT</span>
+                        <div className="text-[#E6EDF3] text-base font-mono">{(eventData.client as any).cuit || '—'}</div>
                       </div>
+                    </div>
+                    <div>
+                      <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">Teléfonos</span>
+                      <div className="text-[#E6EDF3] text-base font-mono">{eventData.client.phone}</div>
                     </div>
                     <div>
                       <span className="block text-[#8B949E] text-xs font-medium uppercase tracking-wider mb-1">Decorador</span>
@@ -1837,34 +2093,59 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
               )}
 
               {activeTab === 'OBS' && (
-                <div className="space-y-4">
-                  <div className="bg-[#0D1117] p-4 rounded-xl border border-[#30363D]">
-                    <textarea
-                      readOnly
-                      className="w-full bg-transparent border-none text-[#E6EDF3] text-sm focus:outline-none min-h-[150px] resize-none"
-                      value={eventData.observations.join('\n')}
-                    />
-                  </div>
+                <div className="space-y-6">
+                  {/* General Observations - Hidden for Catering */}
+                  {user.role !== 'CATERING' && (
+                    <div>
+                      <h4 className="text-[#C8A951] text-xs font-bold uppercase tracking-wider mb-2 ml-1">Observaciones generales</h4>
+                      <div className="bg-[#0D1117] p-4 rounded-xl border border-[#30363D]">
+                        <textarea
+                          readOnly
+                          className="w-full bg-transparent border-none text-[#E6EDF3] text-sm focus:outline-none min-h-[150px] resize-none"
+                          value={eventData.observations.join('\n')}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Catering Observations - Visible for Jefe, Recepcionista, Catering */}
+                  {(user.role === 'JEFE' || user.role === 'RECEPCIONISTA' || user.role === 'CATERING') && (
+                    <div>
+                      <h4 className="text-[#C8A951] text-xs font-bold uppercase tracking-wider mb-2 ml-1">Observaciones para catering</h4>
+                      <div className="bg-[#0D1117] p-4 rounded-xl border border-[#30363D]">
+                        <textarea
+                          readOnly={user.role === 'CATERING'}
+                          className={`w-full bg-transparent border-none text-[#E6EDF3] text-sm focus:outline-none min-h-[150px] resize-none ${user.role !== 'CATERING' && 'focus:ring-1 focus:ring-[#C8A951]/30 rounded p-1'}`}
+                          value={(eventData as any).cateringObservations.join('\n')}
+                          placeholder={user.role === 'CATERING' ? 'No hay observaciones' : 'Escriba las observaciones para el equipo de catering...'}
+                        />
+                      </div>
+                      {user.role === 'CATERING' && (
+                        <p className="text-[10px] text-[#8B949E] mt-2 italic ml-1">
+                          * Modo lectura: Solo el personal administrativo puede editar estas notas.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         )}
 
-      {/* Content Grid */}
       <div className="pb-20 lg:pb-0">
-        {/* Main Content - Always visible (Services) */}
         <div className="w-full">
           <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-6">
             <h3 className="text-[#E6EDF3] font-display font-semibold mb-6 flex items-center gap-2">
               <Package size={20} className="text-[#C8A951]" /> Servicios contratados
             </h3>
 
-
             <div className="space-y-8">
-              {services.map((cat, i) => (
-                <div key={i} className="bg-[#0D1117]/30 rounded-lg p-4 border border-[#30363D]/50">
-                  <h4 className="text-[#8B949E] text-xs font-bold uppercase tracking-wider border-b border-[#30363D] pb-2 mb-4">
+              {services.map((cat: any, i) => (
+                <div key={i} className={`rounded-lg p-4 border ${cat.isTax 
+                  ? 'bg-[#C8A951]/5 border-[#C8A951]/30 mt-12 shadow-lg shadow-[#C8A951]/5' 
+                  : 'bg-[#0D1117]/30 border-[#30363D]/50'}`}>
+                  <h4 className={`text-xs font-bold uppercase tracking-wider border-b pb-2 mb-4 ${cat.isTax ? 'text-[#C8A951] border-[#C8A951]/20' : 'text-[#8B949E] border-[#30363D]'}`}>
                     {cat.category}
                   </h4>
                   <div className="space-y-4">
@@ -1875,6 +2156,7 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
                             <div className="flex items-center gap-2">
                               {item.isIncluded && <CheckCircle size={14} className="text-[#3FB950]" />}
                               {item.isSena && <CheckCircle size={14} className="text-[#3FB950]" />}
+                              {item.isPackIncluded && <span className="bg-[#C8A951] text-[#0D1117] text-[9px] font-bold px-1.5 py-0.5 rounded leading-none mr-2">INCLUIDO EN PACK</span>}
                               {item.alert && <AlertTriangle size={16} className="text-[#F85149]" />}
                               <span className={`text-sm ${item.isInfo ? 'text-[#8B949E] italic' : 'text-[#E6EDF3] font-medium'}`}>
                                 {item.name}
@@ -1894,7 +2176,15 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
                           {!item.isInfo && !isProduction && (
                             <div className="text-right ml-4">
                               <div className="flex items-center justify-end gap-3">
-                                {item.qty && <span className="text-xs text-[#8B949E] font-mono">{item.qty}</span>}
+                                {item.qty && (
+                                  <span className="text-xs text-[#8B949E] font-medium">
+                                    {(() => {
+                                      const val = item.qty.replace(/[up]/g, '');
+                                      if (item.name.toLowerCase().includes('mozo')) return `${val} mozos`;
+                                      return `${val} unidades`;
+                                    })()}
+                                  </span>
+                                )}
                                 <span className="text-sm text-[#E6EDF3] font-mono font-medium min-w-[100px]">
                                   {item.price === 0 ? 'incluido' : formatCurrency(item.price)}
                                   {item.unitPrice && <span className="text-[10px] text-[#8B949E] block">c/u</span>}
@@ -2035,6 +2325,28 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
       >
         <form onSubmit={handlePaymentSubmit} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium text-[#8B949E] mb-1">Imputar a servicio</label>
+            <div className="relative">
+              <select
+                value={paymentForm.service}
+                onChange={(e) => setPaymentForm({ ...paymentForm, service: e.target.value })}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] appearance-none focus:border-[#C8A951] focus:outline-none"
+              >
+                <optgroup label="Servicios contratados">
+                  {services.flatMap(cat => cat.items)
+                    .filter((item: any) => !item.isInfo && item.name)
+                    .map((item, idx) => (
+                      <option key={idx} value={item.name}>{item.name}</option>
+                    ))
+                  }
+                </optgroup>
+                <option value="A cuenta general">A cuenta general</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-1">Monto</label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-[#8B949E]">$</span>
@@ -2049,47 +2361,39 @@ const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: (
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#8B949E] mb-1">Tipo de Pago</label>
-            <div className="relative">
-              <select
-                value={paymentForm.type}
-                onChange={(e) => setPaymentForm({ ...paymentForm, type: e.target.value })}
-                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] appearance-none focus:border-[#C8A951] focus:outline-none"
-              >
-                {paymentTypes.map(type => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-[#8B949E] mb-1">Tipo de Pago</label>
+              <div className="relative">
+                <select
+                  value={paymentForm.type}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, type: e.target.value })}
+                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] appearance-none focus:border-[#C8A951] focus:outline-none text-xs"
+                >
+                  {paymentTypes.map(type => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#8B949E] mb-1">Método de Pago</label>
-            <div className="relative">
-              <select
-                value={paymentForm.method}
-                onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
-                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] appearance-none focus:border-[#C8A951] focus:outline-none"
-              >
-                <option value="EFECTIVO">Efectivo</option>
-                <option value="TRANSFERENCIA">Transferencia</option>
-                <option value="TARJETA">Tarjeta de Crédito/Débito</option>
-                <option value="CHEQUE">Cheque</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
+            <div>
+              <label className="block text-sm font-medium text-[#8B949E] mb-1">Método de Pago</label>
+              <div className="relative">
+                <select
+                  value={paymentForm.method}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
+                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] appearance-none focus:border-[#C8A951] focus:outline-none text-xs"
+                >
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="TRANSFERENCIA">Transferencia</option>
+                  <option value="TARJETA">Tarjeta de Crédito/Débito</option>
+                  <option value="CHEQUE">Cheque</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
+              </div>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#8B949E] mb-1">Notas / Observaciones</label>
-            <textarea
-              value={paymentForm.notes}
-              onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none min-h-[80px]"
-              placeholder="Detalles adicionales..."
-            />
           </div>
         </form>
       </Modal>
@@ -2101,7 +2405,8 @@ const CateringEventDetailView = ({ eventData }: { eventData: any }) => {
   return (
     <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-6 max-w-2xl mx-auto mt-8">
       <h2 className="text-xl font-display font-bold text-[#E6EDF3] mb-4">{eventData.title}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm mb-6">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-[#8B949E]">
             <Calendar size={16} />
@@ -2116,11 +2421,12 @@ const CateringEventDetailView = ({ eventData }: { eventData: any }) => {
             <span>{eventData.salon}</span>
           </div>
         </div>
+
         <div className="bg-[#0D1117] rounded-lg p-4 border border-[#30363D]">
           <h3 className="text-[#C8A951] font-medium mb-3">Cantidades</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-[#8B949E]">Adultos:</span>
+              <span className="text-[#8B949E]">Invitados (Total):</span>
               <span className="text-[#E6EDF3] font-bold">{eventData.guests.confirmed}</span>
             </div>
             <div className="flex justify-between">
@@ -2130,6 +2436,38 @@ const CateringEventDetailView = ({ eventData }: { eventData: any }) => {
           </div>
         </div>
       </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm mb-6 p-4 bg-[#0D1117] rounded-lg border border-[#30363D]/50">
+        <div>
+          <h3 className="text-[#8B949E] text-xs font-bold uppercase tracking-wider mb-2">Contacto del Cliente</h3>
+          <div className="space-y-1">
+            <div className="text-[#E6EDF3] font-medium flex items-center gap-2">
+              <Users size={14} className="text-[#C8A951]" /> {eventData.clientName || 'No especificado'}
+            </div>
+            <div className="text-[#E6EDF3] font-mono flex items-center gap-2">
+              <Phone size={14} className="text-[#C8A951]" /> {eventData.clientPhone || 'No especificado'}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {eventData.cateringObservations && eventData.cateringObservations.length > 0 && (
+        <div className="mt-2 pt-6 border-t border-[#30363D]">
+          <h3 className="text-[#C8A951] font-display font-bold uppercase tracking-wider text-xs mb-4 flex items-center gap-2">
+            <FileText size={14} /> Observaciones para Catering
+          </h3>
+          <div className="bg-[#0D1117] rounded-xl p-4 border border-[#30363D]/50 text-sm">
+            <ul className="space-y-3">
+              {eventData.cateringObservations.map((obs: string, i: number) => (
+                <li key={i} className="flex gap-3 text-[#E6EDF3] leading-relaxed">
+                  <span className="text-[#C8A951] shrink-0 mt-1">•</span>
+                  <span>{obs}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -2362,9 +2700,11 @@ const ReportsView = () => {
   ];
 
   const dataPie = [
-    { name: '15 años', value: 3, color: '#C8A951' },
+    { name: '15 años', value: 3, color: '#E91E8C' },
     { name: 'Casamiento', value: 3, color: '#1F6FEB' },
-    { name: 'Cumpleaños', value: 2, color: '#3FB950' },
+    { name: 'Cumpleaños', value: 2, color: '#C8A951' },
+    { name: 'Corporativo', value: 1, color: '#6B7280' },
+    { name: 'Otro', value: 1, color: '#22C55E' },
   ];
 
   const topEvents = [
@@ -2412,8 +2752,8 @@ const ReportsView = () => {
           </div>
         </div>
         <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-          <div className="text-[#8B949E] text-sm font-medium mb-2">Señas del mes</div>
-          <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">5 señas</div>
+          <div className="text-[#8B949E] text-sm font-medium mb-2">Pagos del mes</div>
+          <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">5 pagos</div>
           <div className="text-[#8B949E] text-xs font-medium flex items-center gap-1">
             en Marzo
           </div>
@@ -2731,11 +3071,28 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
   const getMethodIcon = (method: string) => {
     switch (method) {
       case 'Efectivo': return <DollarSign size={16} className="text-[#3FB950]" />;
-      case 'Transferencia': return <CheckCircle size={16} className="text-[#1F6FEB]" />; // Using CheckCircle as generic icon for transfer
+      case 'Transferencia': return <CheckCircle size={16} className="text-[#1F6FEB]" />; 
       case 'Tarjeta': return <CreditCard size={16} className="text-[#C8A951]" />;
       default: return <DollarSign size={16} />;
     }
   };
+
+  const [registerForm, setRegisterForm] = useState({
+    eventId: '',
+    serviceName: 'A cuenta general',
+    amount: '',
+    currency: 'ARS',
+    type: 'A_CUENTA',
+    method: 'Efectivo',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  const [eventSearch, setEventSearch] = useState('');
+  const [showEventResults, setShowEventResults] = useState(false);
+
+  const filteredEventResults = EVENTS_DATA.filter(e => 
+    e.title.toLowerCase().includes(eventSearch.toLowerCase())
+  ).slice(0, 5);
 
   return (
     <div className="p-4 lg:p-8 h-full flex flex-col overflow-y-auto">
@@ -2761,10 +3118,10 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
           </div>
         </div>
         <div className="bg-[#161B22] border border-[#30363D] border-t-4 border-t-[#F85149] rounded-xl p-5">
-          <div className="text-[#8B949E] text-sm font-medium mb-2">Señas pendientes</div>
+          <div className="text-[#8B949E] text-sm font-medium mb-2">Por señar</div>
           <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">{eventsWithoutFullSena}</div>
           <div className="text-[#F85149] text-xs font-medium flex items-center gap-1 leading-tight">
-            eventos sin seña completa
+            eventos pendientes de seña
           </div>
         </div>
         <div className="bg-[#161B22] border border-[#30363D] border-t-4 border-t-[#C8A951] rounded-xl p-5">
@@ -3012,30 +3369,79 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#8B949E] mb-1">Evento</label>
-            <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
-              {EVENTS_DATA.map(e => (
-                <option key={e.id} value={e.id}>{e.title}</option>
-              ))}
-            </select>
+            <label className="block text-sm font-medium text-[#8B949E] mb-1">Imputar a servicio</label>
+            <div className="relative">
+              <select 
+                value={registerForm.serviceName}
+                onChange={(e) => setRegisterForm({...registerForm, serviceName: e.target.value})}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none appearance-none"
+              >
+                <optgroup label="Servicios del catálogo">
+                  {CATALOG_DATA.filter(item => !item.name.toLowerCase().includes('iva'))
+                    .map(item => (
+                      <option key={item.id} value={item.name}>{item.name}</option>
+                    ))
+                  }
+                </optgroup>
+                <option value="A cuenta general">A cuenta general</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#8B949E] pointer-events-none" />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-[#8B949E] mb-1">Tipo de Pago</label>
-            <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
-              <option value="SENA">Seña</option>
-              <option value="A_CUENTA">A cuenta</option>
-              <option value="SALDO">Saldo</option>
-              <option value="ADICIONAL">Adicional</option>
-            </select>
+
+          <div className="relative">
+            <label className="block text-sm font-medium text-[#8B949E] mb-1">Buscar Evento</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 text-[#8B949E] h-4 w-4" />
+              <input 
+                type="text" 
+                value={eventSearch}
+                onChange={(e) => {
+                  setEventSearch(e.target.value);
+                  setShowEventResults(true);
+                }}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-10 pr-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" 
+                placeholder="Escriba el nombre del evento..." 
+              />
+            </div>
+            {showEventResults && eventSearch && (
+              <div className="absolute z-50 w-full mt-1 bg-[#161B22] border border-[#30363D] rounded-lg shadow-xl max-h-40 overflow-y-auto">
+                {filteredEventResults.map(e => (
+                  <div 
+                    key={e.id}
+                    onClick={() => {
+                      setRegisterForm({...registerForm, eventId: e.id});
+                      setEventSearch(e.title);
+                      setShowEventResults(false);
+                    }}
+                    className="p-3 hover:bg-[#30363D] cursor-pointer text-[#E6EDF3] text-sm border-b border-[#30363D] last:border-none"
+                  >
+                    {e.title}
+                  </div>
+                ))}
+                {filteredEventResults.length === 0 && <div className="p-3 text-[#8B949E] text-xs">No se encontraron eventos</div>}
+              </div>
+            )}
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-[#8B949E] mb-1">Monto</label>
-              <input type="number" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" placeholder="0.00" />
+              <input 
+                type="number" 
+                value={registerForm.amount}
+                onChange={(e) => setRegisterForm({...registerForm, amount: e.target.value})}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" 
+                placeholder="0.00" 
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-[#8B949E] mb-1">Moneda</label>
-              <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
+              <select 
+                value={registerForm.currency}
+                onChange={(e) => setRegisterForm({...registerForm, currency: e.target.value})}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none"
+              >
                 <option>ARS</option>
                 <option>USD</option>
               </select>
@@ -3044,7 +3450,11 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-[#8B949E] mb-1">Método de pago</label>
-              <select className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none">
+              <select 
+                value={registerForm.method}
+                onChange={(e) => setRegisterForm({...registerForm, method: e.target.value})}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none"
+              >
                 <option>Efectivo</option>
                 <option>Transferencia</option>
                 <option>Tarjeta</option>
@@ -3053,15 +3463,13 @@ const PaymentsView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }
             </div>
             <div>
               <label className="block text-sm font-medium text-[#8B949E] mb-1">Fecha</label>
-              <input type="date" defaultValue={new Date().toISOString().split('T')[0]} className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" />
+              <input 
+                type="date" 
+                value={registerForm.date}
+                onChange={(e) => setRegisterForm({...registerForm, date: e.target.value})}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none" 
+              />
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[#8B949E] mb-1">Notas / Observaciones</label>
-            <textarea
-              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] focus:outline-none min-h-[80px]"
-              placeholder="Detalles adicionales..."
-            />
           </div>
           <div>
             <label className="block text-sm font-medium text-[#8B949E] mb-1">Registrado por</label>
@@ -3357,7 +3765,14 @@ export default function App() {
                   date: "Viernes 07 de marzo de 2025",
                   time: "21:00 hs — 04:00 hs",
                   salon: "Vicenzo",
-                  guests: { confirmed: 155 }
+                  clientName: "Familia Suárez",
+                  clientPhone: "381 456-7890",
+                  guests: { confirmed: 155 },
+                  cateringObservations: [
+                    "Menú sin TACC para 2 invitados adultos.",
+                    "Torta de quinceañera llega a las 19:00 hs.",
+                    "Servicio de barra libre desde las 00:00 hs hasta cierre."
+                  ]
                 }} />
               </div>
             ) : (
