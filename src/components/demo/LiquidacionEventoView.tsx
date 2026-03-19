@@ -45,28 +45,29 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1 transition-colors">
-              <ChevronLeft size={20} /> Volver
+          <div className="flex flex-col gap-4">
+            <button onClick={onBack} className="h-10 px-4 w-fit bg-[#161B22] border border-[#30363D] rounded-xl text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-2 transition-all active:scale-95">
+              <ChevronLeft size={18} /> <span className="text-xs font-bold">Volver</span>
             </button>
-            <div className="h-6 w-px bg-[#30363D] hidden lg:block" />
             <div>
-              <h1 className="text-2xl font-display font-bold text-[#E6EDF3] tracking-tight">Liquidación por Evento</h1>
-              <div className="flex items-center gap-4 mt-1.5">
-                <span className="text-xs font-black text-[#C8A951] uppercase tracking-[0.2em]">{event?.category || 'S/D'}</span>
+              <h1 className="text-2xl sm:text-3xl font-display font-black text-[#E6EDF3] tracking-tighter">Liquidación por Evento</h1>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest leading-none">
+                  {event?.category || 'S/D'}
+                </span>
                 <span className="text-[#8B949E] text-xs font-medium uppercase tracking-widest">{event?.date || 'S/D'}</span>
               </div>
             </div>
           </div>
-          <button className="px-6 py-3 bg-[#3FB950] text-[#0D1117] rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-[#3FB950]/10">
+          <button className="w-full lg:w-auto px-6 py-4 bg-[#3FB950] text-[#0D1117] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#3FB950]/10 shrink-0">
             <Save size={18} /> Guardar liquidación
           </button>
         </div>
 
-        {/* Calculation Grid */}
-        <div className="bg-[#161B22] border border-[#30363D] rounded-3xl overflow-hidden shadow-2xl mb-10">
+        {/* Calculation - Desktop Table View */}
+        <div className="hidden lg:block bg-[#161B22] border border-[#30363D] rounded-3xl overflow-hidden shadow-2xl mb-10">
           <div className="px-6 py-4 bg-[#1C2128] border-b border-[#30363D] flex items-center gap-2 text-[#3FB950]">
-            <Calculator size={18} /> <h2 className="text-xs font-black uppercase tracking-widest">Planilla de Cálculo Manual</h2>
+            <Calculator size={18} /> <h2 className="text-xs font-black uppercase tracking-widest">Planilla de Cálculo</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -82,48 +83,25 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#30363D]/30">
-                {/* ADULTOS */}
                 <tr className="hover:bg-[#0D1117]/20 transition-colors">
                   <td className="px-6 py-6 font-bold text-[#E6EDF3]">ADULTOS</td>
                   <td className="px-4 py-6">
-                    <input 
-                      type="number" 
-                      value={data.cantAdultos}
-                      onChange={(e) => setData({...data, cantAdultos: parseInt(e.target.value) || 0})}
-                      className="w-20 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#3FB950] focus:border-[#3FB950] outline-none" 
-                    />
+                    <input type="number" value={data.cantAdultos} onChange={(e) => setData({...data, cantAdultos: parseInt(e.target.value) || 0})} className="w-20 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#3FB950] focus:border-[#3FB950] outline-none" />
                   </td>
                   <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(tarjChuchiMarch.adults)}</td>
                   <td className="px-4 py-6">
-                    <input 
-                      type="number" 
-                      value={data.valorCoca}
-                      onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})}
-                      className="w-24 mx-auto bg-[#0D1117] border border-[#C8A951]/30 rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#C8A951] outline-none" 
-                    />
+                    <input type="number" value={data.valorCoca} onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})} className="w-24 mx-auto bg-[#0D1117] border border-[#C8A951]/30 rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#C8A951] outline-none" />
                   </td>
                   <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(tarjChuchiMarch.mozos)}</td>
                   <td className="px-4 py-6">
-                    <input 
-                      type="number" 
-                      value={data.cantMozos}
-                      onChange={(e) => setData({...data, cantMozos: parseInt(e.target.value) || 0})}
-                      className="w-16 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#3FB950] outline-none" 
-                    />
+                    <input type="number" value={data.cantMozos} onChange={(e) => setData({...data, cantMozos: parseInt(e.target.value) || 0})} className="w-16 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#3FB950] outline-none" />
                   </td>
                   <td className="px-6 py-6 text-right font-black text-[#E6EDF3]">{formatCurrency(calculations.subAdultos)}</td>
                 </tr>
-
-                {/* NIÑOS */}
                 <tr className="hover:bg-[#0D1117]/20 transition-colors">
                   <td className="px-6 py-6 font-bold text-[#E6EDF3]">NIÑOS</td>
                   <td className="px-4 py-6">
-                    <input 
-                      type="number" 
-                      value={data.cantNinos}
-                      onChange={(e) => setData({...data, cantNinos: parseInt(e.target.value) || 0})}
-                      className="w-20 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#3FB950] focus:border-[#3FB950] outline-none" 
-                    />
+                    <input type="number" value={data.cantNinos} onChange={(e) => setData({...data, cantNinos: parseInt(e.target.value) || 0})} className="w-20 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#3FB950] focus:border-[#3FB950] outline-none" />
                   </td>
                   <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(tarjChuchiMarch.kids)}</td>
                   <td className="px-4 py-6 text-center text-[#30363D]">─</td>
@@ -134,6 +112,58 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile View - Single Category Cards (Zero Sliders!) */}
+        <div className="lg:hidden space-y-4 mb-10">
+           {/* Card Adultos */}
+           <div className="bg-[#161B22] border border-[#30363D] rounded-3xl p-6 space-y-6">
+              <div className="flex justify-between items-center border-b border-[#30363D]/50 pb-4">
+                <h3 className="text-sm font-black text-[#E6EDF3] tracking-widest uppercase">Rubro Adultos</h3>
+                <span className="text-xs font-black text-[#3FB950] bg-[#3FB950]/10 px-3 py-1 rounded-lg">SUB-T: {formatCurrency(calculations.subAdultos)}</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">Cant Personas</label>
+                  <input type="number" value={data.cantAdultos} onChange={(e) => setData({...data, cantAdultos: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-center font-black text-[#3FB950] text-lg outline-none focus:border-[#3FB950]" />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">Valor Tarjeta</label>
+                  <div className="w-full h-[52px] flex items-center justify-center bg-[#0D1117] border border-transparent rounded-xl text-sm font-bold text-[#8B949E]">{formatCurrency(tarjChuchiMarch.adults)}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#30363D]/30">
+                <div>
+                  <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Gasto Coca (u)</label>
+                  <input type="number" value={data.valorCoca} onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#C8A951]/30 rounded-xl px-4 py-3 text-center font-black text-[#E6EDF3] text-sm outline-none focus:border-[#C8A951]" />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Cant Mozos</label>
+                  <input type="number" value={data.cantMozos} onChange={(e) => setData({...data, cantMozos: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-center font-black text-[#E6EDF3] text-sm outline-none focus:border-[#3FB950]" />
+                </div>
+              </div>
+           </div>
+
+           {/* Card Niños */}
+           <div className="bg-[#161B22] border border-[#30363D] rounded-3xl p-6 space-y-6">
+              <div className="flex justify-between items-center border-b border-[#30363D]/50 pb-4">
+                <h3 className="text-sm font-black text-[#E6EDF3] tracking-widest uppercase">Rubro Niños</h3>
+                <span className="text-xs font-black text-[#3FB950] bg-[#3FB950]/10 px-3 py-1 rounded-lg">SUB-T: {formatCurrency(calculations.subNinos)}</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">Cant Niños</label>
+                  <input type="number" value={data.cantNinos} onChange={(e) => setData({...data, cantNinos: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-center font-black text-[#3FB950] text-lg outline-none focus:border-[#3FB950]" />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">Valor Tarjeta</label>
+                  <div className="w-full h-[52px] flex items-center justify-center bg-[#0D1117] border border-transparent rounded-xl text-sm font-bold text-[#8B949E]">{formatCurrency(tarjChuchiMarch.kids)}</div>
+                </div>
+              </div>
+           </div>
         </div>
 
         {/* Desglose Final */}

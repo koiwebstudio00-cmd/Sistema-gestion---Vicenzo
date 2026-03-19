@@ -153,45 +153,70 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1">
-              <ChevronLeft size={20} /> Volver
-            </button>
-            <div className="h-6 w-px bg-[#30363D] hidden lg:block" />
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+          <div className="flex flex-col gap-4 w-full">
+            <div className="flex items-center justify-between">
+              <button 
+                onClick={onBack} 
+                className="h-10 px-4 bg-[#161B22] border border-[#30363D] rounded-xl text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-2 transition-all active:scale-95"
+              >
+                <ChevronLeft size={18} /> <span className="text-xs font-bold">Volver</span>
+              </button>
+              <div className="lg:hidden flex items-center gap-2">
+                <span className="bg-[#C8A951]/10 text-[#C8A951] border border-[#C8A951]/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">
                   {eventData.category}
                 </span>
-                <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">{eventData.title}</h1>
               </div>
-              <div className="text-[#8B949E] text-xs mt-1.5 flex flex-wrap items-center gap-4">
-                <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[#C8A951]" /> {eventData.date}</span>
-                <span className="flex items-center gap-1.5"><Clock size={14} className="text-[#C8A951]" /> {eventData.time}</span>
-                <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#C8A951]" /> {eventData.salon}</span>
-                <span className="bg-[#161B22] px-2 py-0.5 rounded border border-[#30363D]">
-                  Precio válido hasta: {(() => {
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4">
+                <div className="hidden lg:block">
+                  <span className="bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                    {eventData.category}
+                  </span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-display font-black text-[#E6EDF3] leading-tight max-w-xl">
+                  {eventData.title}
+                </h1>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-3 lg:gap-6 bg-[#161B22]/50 p-4 lg:p-0 rounded-2xl border border-[#30363D]/30 lg:border-none">
+                <div className="flex items-center gap-3 text-[#E6EDF3] text-xs">
+                  <div className="p-2 bg-[#C8A951]/10 rounded-lg text-[#C8A951]"><Calendar size={14} /></div>
+                  <span className="font-medium">{eventData.date}</span>
+                </div>
+                <div className="flex items-center gap-3 text-[#E6EDF3] text-xs">
+                  <div className="p-2 bg-[#C8A951]/10 rounded-lg text-[#C8A951]"><Clock size={14} /></div>
+                  <span className="font-medium">{eventData.time}</span>
+                </div>
+                <div className="flex items-center gap-3 text-[#E6EDF3] text-xs">
+                  <div className="p-2 bg-[#C8A951]/10 rounded-lg text-[#C8A951]"><MapPin size={14} /></div>
+                  <span className="font-medium">{eventData.salon}</span>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 bg-[#0D1117] px-3 py-1.5 rounded-lg border border-[#30363D] text-[10px] text-[#8B949E]">
+                  <span className="font-black text-[#6E7681]">VALIDEZ:</span> 
+                  {(() => {
                     const d = new Date(eventData.createdAt);
                     d.setDate(d.getDate() + 30);
                     return d.toLocaleDateString('es-AR');
                   })()}
-                </span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsPlanillaOpen(true)} className="px-4 py-2 bg-[#161B22] border border-[#30363D] hover:bg-[#30363D] rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <button onClick={() => setIsPlanillaOpen(true)} className="flex-1 sm:flex-none px-4 py-3 bg-[#161B22] border border-[#30363D] hover:bg-[#30363D] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
               <Printer size={16} /> Planilla
             </button>
-            <button onClick={() => setIsBalanceModalOpen(true)} className="px-4 py-2 bg-[#C8A951] text-[#0D1117] hover:bg-[#E3B341] rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-[#C8A951]/10">
+            <button onClick={() => setIsBalanceModalOpen(true)} className="flex-1 sm:flex-none px-4 py-3 bg-[#C8A951] text-[#0D1117] hover:bg-[#E3B341] rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C8A951]/10">
               Balance ⚖️
             </button>
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-none">
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as EventStatus)}
-                className={`appearance-none border font-black rounded-xl pl-4 pr-10 py-2.5 text-xs outline-none ${
+                className={`w-full appearance-none border font-black rounded-xl pl-4 pr-10 py-3 text-xs outline-none ${
                   status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 border-[#3FB950]/30 text-[#3FB950]' :
                   status === 'SENA_EN_PROCESO' ? 'bg-[#C8A951]/10 border-[#C8A951]/30 text-[#C8A951]' :
                   status === 'POR_SENAR' ? 'bg-[#D29922]/10 border-[#D29922]/30 text-[#D29922]' :
@@ -203,7 +228,7 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                 <option value="CONFIRMADO">CONFIRMADO</option>
                 <option value="CANCELADO">CANCELADO</option>
               </select>
-              <ChevronDown className="absolute right-3 top-3 h-4 w-4 pointer-events-none opacity-50" />
+              <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 pointer-events-none opacity-50" />
             </div>
           </div>
         </div>
@@ -222,21 +247,23 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 items-center overflow-x-auto pb-2 sm:pb-0">
+        {/* Tabs - No more sliders! */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
           {[
             { id: 'ALERTS', label: 'Alertas', icon: AlertTriangle, color: '#F85149' },
             { id: 'CLIENT', label: 'Datos Cliente', icon: UserIcon, color: '#C8A951' },
-            { id: 'OBS', label: 'Obs.', icon: FileText, color: '#C8A951' },
+            { id: 'OBS', label: 'Observaciones', icon: FileText, color: '#C8A951' },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(activeTab === tab.id ? null : tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border shrink-0 ${
-                activeTab === tab.id ? 'bg-[#C8A951] border-[#C8A951] text-[#0D1117]' : 'bg-[#161B22] border-[#30363D] text-[#8B949E]'
+              className={`flex items-center justify-center gap-3 px-6 py-3.5 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all border ${
+                activeTab === tab.id 
+                  ? 'bg-[#C8A951] border-[#C8A951] text-[#0D1117] shadow-lg shadow-[#C8A951]/10' 
+                  : 'bg-[#161B22] border-[#30363D] text-[#8B949E] hover:border-[#8B949E]/50'
               }`}
             >
-              <tab.icon size={14} /> {tab.label}
+              <tab.icon size={16} /> {tab.label}
             </button>
           ))}
         </div>
@@ -361,7 +388,8 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="bg-[#0D1117]/30 border-b border-[#30363D]/50">
@@ -433,6 +461,60 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                       })}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile Card View (No more side sliders!) */}
+                <div className="lg:hidden divide-y divide-[#30363D]/30">
+                  {category.items.map((item: any, iIdx) => {
+                    const isIncludedInPack = PACK_PREMIUM_ITEMS.includes(item.id || '') || ['Cabina DJ con pantallas en pista', 'Barras Láser Beam', 'Craquera', '12 Cabezales Aro LED', 'Pantallas Laterales'].includes(item.name);
+                    const isIncludedFurniture = INCLUDED_FURNITURE_LIST.includes(item.name);
+                    const isFreeItem = item.status === 'REGALO' || item.status === 'SIN CARGO';
+                    const qtyVal = parseInt(item.qty) || 1;
+                    const unitPrice = isFreeItem ? 0 : item.price;
+                    const totalPrice = (item.status === 'incluido' || (isPackActive && isIncludedInPack) || isIncludedFurniture || isFreeItem) ? 0 : (item.unitPrice ? unitPrice * qtyVal : unitPrice);
+
+                    return (
+                      <div key={iIdx} className="p-6 space-y-4">
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-[#E6EDF3] text-sm leading-snug">{item.name}</h4>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {item.isMandatory && <span className="bg-[#F85149] text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">OBLIGATORIO</span>}
+                              {isFreeItem && <span className="bg-[#1F6FEB]/20 text-[#1F6FEB] border border-[#1F6FEB]/40 text-[8px] font-black px-1.5 py-0.5 rounded uppercase">{item.status}</span>}
+                              <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
+                                isIncludedFurniture || isFreeItem ? 'bg-[#3FB950]/20 text-[#3FB950]' :
+                                item.status === 'PENDIENTE' ? 'bg-[#30363D] text-[#8B949E]' : 
+                                'bg-[#3FB950]/20 text-[#3FB950]'
+                              }`}>
+                                {isIncludedFurniture ? 'INCLUIDO' : (isPackActive && isIncludedInPack) ? 'EN PACK' : item.status}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                             {!item.isMandatory && (
+                                <button className="p-2 bg-[#F85149]/10 text-[#F85149] rounded-lg"><Trash2 size={16} /></button>
+                             )}
+                             {item.status === 'PENDIENTE' && !isIncludedFurniture && !isFreeItem && (
+                               <button onClick={() => setIsPaymentModalOpen(true)} className="p-2 bg-[#C8A951]/10 text-[#C8A951] rounded-lg"><DollarSign size={16} /></button>
+                             )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#30363D]/30">
+                          <div>
+                            <span className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Cantidad</span>
+                            <span className="font-bold text-[#E6EDF3] text-sm">{item.qty}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Costo Total</span>
+                            <span className={`font-black text-sm ${totalPrice === 0 ? 'text-[#8B949E]' : 'text-[#3FB950]'}`}>
+                              {totalPrice === 0 ? 'Incluido' : formatCurrency(totalPrice)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
                 {category.category === 'CATERING' && (
                   <div className="bg-[#1C2128] px-6 py-3 border-t border-[#30363D] text-right">

@@ -190,21 +190,20 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
               )}
             </div>
             {/* ... Rest of existing table header indicators ... */}
-            <div className="p-4 border-b border-[#30363D] space-y-4">
-              {/* Existing Search / Filters for clients */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-2.5 text-[#8B949E] h-4 w-4" />
-                  <input
-                    type="text"
-                    placeholder="Buscar descripción..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#C8A951]"
-                  />
-                </div>
+            {/* Search / Filters for clients - Visible on all screens */}
+            <div className="p-4 border-b border-[#30363D] bg-[#1C2128]/50">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 text-[#8B949E] h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Buscar por evento o descripción..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#C8A951] transition-all"
+                />
               </div>
             </div>
+
             {/* Desktop Table */}
             <div className="hidden lg:block overflow-auto">
               <table className="w-full text-left">
@@ -237,6 +236,47 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
                 </tbody>
               </table>
             </div>
+ 
+            {/* Mobile View - Cards (Zero Sliders!) */}
+            <div className="lg:hidden flex flex-col divide-y divide-[#30363D]/50 bg-[#0D1117]/40 min-h-[100px]">
+              {paginatedDates.length === 0 ? (
+                <div className="p-10 text-center text-[#8B949E] italic text-xs">No se encontraron cobros registrados.</div>
+              ) : (
+                paginatedDates.map(date => (
+                  <div key={date}>
+                    <div className="px-6 py-2 bg-[#1C2128] text-[#C8A951] font-black italic text-[9px] uppercase tracking-widest border-b border-[#30363D]/30">{date}</div>
+                    <div className="divide-y divide-[#30363D]/30">
+                      {groupedPayments[date].map(p => (
+                        <div key={p.id} className="p-6 space-y-3 bg-[#161B22]/50">
+                          <div className="flex justify-between items-start gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-black text-[#E6EDF3] leading-tight truncate">{p.event}</h4>
+                              <p className="text-[10px] text-[#8B949E] mt-1 italic">{p.desc}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-base font-black text-[#3FB950] tracking-tighter">{formatCurrency(p.amount)}</div>
+                              <div className="flex items-center justify-end gap-1.5 mt-1">
+                                <span className="text-[9px] font-bold text-[#8B949E] uppercase">{p.method}</span>
+                                {getMethodIcon(p.method)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between pt-3 border-t border-[#30363D]/20">
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded-full bg-[#0D1117] border border-[#C8A951]/20 flex items-center justify-center text-[9px] font-black text-[#C8A951]">
+                                {p.user[0]}
+                              </div>
+                              <span className="text-[9px] font-bold text-[#8B949E] tracking-tight">Cargado por {p.user}</span>
+                            </div>
+                            <div className="text-[9px] font-black text-[#8B949E] opacity-50">{p.date.split('-').reverse().join('/')}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </>
       ) : (
@@ -257,7 +297,8 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
               )}
             </div>
             
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-[#1C2128] border-b border-[#30363D] text-[10px] font-black uppercase text-[#8B949E] tracking-widest">
                   <tr>
@@ -285,6 +326,44 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View (Catering) */}
+            <div className="lg:hidden divide-y divide-[#30363D]/50 bg-[#0D1117]/20">
+               {[
+                { idPago: 1, fecha: '2025-03-05', importe: 1200000, tipo: 'Quinceañera', fiesta: '15/03/25', debito: 5200000, saldo: 4000000 },
+                { idPago: 2, fecha: '2025-02-28', importe: 3000000, tipo: 'Casamiento', fiesta: '05/03/25', debito: 7800000, saldo: 4800000 },
+              ].map(p => (
+                <div key={p.idPago} className="p-6 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest mb-1">Fecha Pago</div>
+                      <div className="text-sm font-black text-[#E6EDF3]">{p.fecha}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] font-black text-[#3FB950] uppercase tracking-widest mb-1">Importe</div>
+                      <div className="text-lg font-black text-[#3FB950]">{formatCurrency(p.importe)}</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 py-4 border-y border-[#30363D]/30">
+                    <div>
+                      <div className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest mb-1">Fiesta</div>
+                      <div className="text-xs font-bold text-[#E6EDF3]">{p.tipo}</div>
+                      <div className="text-[10px] text-[#8B949E]">{p.fiesta}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[9px] font-black text-[#F85149] uppercase tracking-widest mb-1">Débito</div>
+                      <div className="text-xs font-bold text-[#F85149]">{formatCurrency(p.debito)}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-[#C8A951] uppercase tracking-widest">Saldo Restante</span>
+                    <span className="text-sm font-black text-[#C8A951]">{formatCurrency(p.saldo)}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <div className="p-6 bg-[#3FB950]/5 border border-[#3FB950]/20 rounded-2xl flex items-start gap-4">

@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, FileText } from 'lucide-react';
+import { BarChart3, ChevronLeft, Clock, FileText, LogOut, Package, Settings } from 'lucide-react';
 import { useState } from 'react';
 import {
   AgendaView,
@@ -159,6 +159,59 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
 
     if (currentView === 'CONFIGURACION') {
       return <UsersView currentUser={user} />;
+    }
+
+    if (currentView === 'MORE') {
+      const menuItems = [
+        { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
+        { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO'] },
+        { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO'] },
+        { id: 'CONFIGURACION', label: 'Configuración', icon: Settings },
+      ];
+
+      const filteredItems = menuItems.filter(item => {
+        if (user.role === 'INVITADO') return false;
+        if (user.role === 'CATERING') return ['LIQUIDACIONES'].includes(item.id);
+        return !item.restricted || !item.restricted.includes(user.role);
+      });
+
+      return (
+        <div className="p-4 lg:p-8 min-h-screen bg-[#0D1117] animate-in fade-in zoom-in-95">
+          <header className="mb-10 text-center">
+             <div className="w-20 h-20 bg-[#C8A951]/10 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-[#C8A951]/20">
+               <img src="https://i.postimg.cc/fTXLSgfS/images-removebg-preview.png" alt="Vicenzo" className="h-12 w-auto" />
+             </div>
+             <h1 className="text-2xl font-display font-black text-[#E6EDF3] tracking-tighter">Más Opciones</h1>
+             <p className="text-[#8B949E] text-xs font-black uppercase tracking-widest mt-1">Gestión avanzada del salón</p>
+          </header>
+
+          <div className="grid grid-cols-2 gap-4">
+            {filteredItems.map(item => (
+              <button
+                key={item.id}
+                onClick={() => handleNavigate(item.id)}
+                className="bg-[#161B22] border border-[#30363D] rounded-3xl p-6 flex flex-col items-center justify-center gap-3 transition-all active:scale-95 shadow-xl hover:border-[#C8A951]/30"
+              >
+                <div className="w-12 h-12 bg-[#0D1117] border border-[#30363D] rounded-2xl flex items-center justify-center text-[#C8A951]">
+                  <item.icon size={24} />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-[#E6EDF3] text-center">{item.label}</span>
+              </button>
+            ))}
+            
+            <button
+               onClick={onLogout}
+               className="col-span-2 bg-[#F85149]/10 border border-[#F85149]/20 rounded-3xl p-5 flex items-center justify-center gap-3 mt-4 text-[#F85149] font-black uppercase tracking-widest text-[11px] active:scale-95 transition-all"
+            >
+               <LogOut size={20} /> Cerrar Sesión
+            </button>
+          </div>
+
+          <div className="mt-12 text-center opacity-30">
+             <p className="text-[9px] font-black text-[#8B949E] uppercase tracking-[0.3em]">Vicenzo — v2.0.0-Mobile</p>
+          </div>
+        </div>
+      );
     }
 
     return <AgendaView onSelectEvent={handleSelectEvent} />;
