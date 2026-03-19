@@ -9,7 +9,7 @@ export interface User {
 }
 
 export type EventStatus = 'POR_SENAR' | 'SENA_EN_PROCESO' | 'CONFIRMADO' | 'CANCELADO';
-export type EventCategory = 'CASAMIENTO' | 'QUINCEANERA' | 'CUMPLEANOS' | 'CORPORATIVO' | 'EGRESADO' | 'OTRO';
+export type EventCategory = 'CASAMIENTO' | 'QUINCEANERA' | 'CORPORATIVO' | 'CUMPLEANOS' | 'ANIVERSARIO' | 'EGRESADO' | 'OTRO';
 
 export interface Event {
   id: string;
@@ -148,6 +148,10 @@ export const EVENTS_DATA: Event[] = [
   { id: '29', title: 'Quinceañera Camila Fernández', date: '2026-11-08', category: 'QUINCEANERA', guests: 160, status: 'CONFIRMADO', balance: 0, total: 18000000, paid: 18000000, responsable: 'Raúl Fernández' },
   { id: '30', title: 'Cumpleaños 18 — Juan Ruiz', date: '2026-12-06', category: 'CUMPLEANOS', guests: 120, status: 'SENA_EN_PROCESO', balance: 4000000, total: 10000000, paid: 6000000, responsable: 'Juan Ruiz' },
   { id: '31', title: 'Evento Corporativo Apple', date: '2026-12-13', category: 'CORPORATIVO', guests: 300, status: 'CONFIRMADO', balance: 0, total: 30000000, paid: 30000000, responsable: 'Apple Store AR' },
+  { id: '32', title: 'Boda de Lucía & Martín', date: '2026-10-17', category: 'CASAMIENTO', guests: 180, status: 'CONFIRMADO', balance: 0, total: 8400000, paid: 8400000, responsable: 'Lucía Fernández' },
+  { id: '33', title: 'Aniversario 50 años - Familia Rossi', date: '2026-11-21', category: 'ANIVERSARIO', guests: 120, status: 'CONFIRMADO', balance: 0, total: 4200000, paid: 4200000, responsable: 'Ricardo Rossi' },
+  { id: '34', title: 'Corporativo - TecnoLogistics', date: '2026-12-18', category: 'CORPORATIVO', guests: 250, status: 'CONFIRMADO', balance: 0, total: 3500000, paid: 3500000, responsable: 'Carlos Paz' },
+  { id: '35', title: 'Egregados 2026 - Colegio Nacional', date: '2026-12-12', category: 'EGRESADO', guests: 200, status: 'SENA_EN_PROCESO', balance: 5000000, total: 10000000, paid: 5000000, responsable: 'Comisión de Padres' },
 ];
 
 export const CATALOG_DATA: ServiceItem[] = [

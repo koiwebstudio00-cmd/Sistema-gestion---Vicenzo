@@ -48,6 +48,7 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
       case 'CUMPLEANOS': return 'bg-[#C8A951]/20 border-l-2 border-[#C8A951] text-[#E6EDF3]';
       case 'CORPORATIVO': return 'bg-[#6B7280]/20 border-l-2 border-[#6B7280] text-[#E6EDF3]';
       case 'EGRESADO': return 'bg-[#8B5CF6]/20 border-l-2 border-[#8B5CF6] text-[#E6EDF3]';
+      case 'ANIVERSARIO': return 'bg-[#00D1FF]/20 border-l-2 border-[#00D1FF] text-[#E6EDF3]';
       case 'OTRO': return 'bg-[#22C55E]/20 border-l-2 border-[#22C55E] text-[#E6EDF3]';
       default: return 'bg-[#8B949E]/20 border-l-2 border-[#8B949E] text-[#E6EDF3]';
     }
@@ -60,6 +61,7 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
       case 'CUMPLEANOS': return '#C8A951';
       case 'CORPORATIVO': return '#6B7280';
       case 'EGRESADO': return '#8B5CF6';
+      case 'ANIVERSARIO': return '#00D1FF';
       case 'OTRO': return '#22C55E';
       default: return '#8B949E';
     }
@@ -229,7 +231,9 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
                           <div
                             className={`w-7 h-7 rounded-[8px] flex items-center justify-center text-[11px] transition-all
                               ${hasEvents ? 'font-bold text-white shadow-md z-10' : 'text-[#8B949E] hover:bg-[#30363D]/30'}`}
-                            style={hasEvents ? { backgroundColor: `${getCategoryColorHex(event?.category)}D9` } : {}}
+                            style={hasEvents ? { 
+                              backgroundColor: event?.status === 'CONFIRMADO' ? '#22C55E' : `${getCategoryColorHex(event?.category)}D9` 
+                            } : {}}
                           >
                             {day}
                           </div>
