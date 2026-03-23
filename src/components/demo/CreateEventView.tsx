@@ -29,6 +29,7 @@ export const CreateEventView: React.FC<CreateEventViewProps> = ({ onBack, onSave
     title: '',
     category: 'CUMPLEANOS' as EventCategory,
     salon: 'Vicenzo' as 'Vicenzo' | 'Casita San Javier',
+    vendedor: '',
     startDate: '',
     startTime: '21:00',
     endDate: '',
@@ -61,6 +62,10 @@ export const CreateEventView: React.FC<CreateEventViewProps> = ({ onBack, onSave
     salonMinGuests: 150,
     adultGuests: 0,
     youngGuests: 0,
+    
+    // Alquiler
+    alquilerTotal: '',
+    alquilerSena: '',
     
     // Estado Inicial
     status: 'POR_SENAR' as EventStatus
@@ -162,6 +167,22 @@ export const CreateEventView: React.FC<CreateEventViewProps> = ({ onBack, onSave
                 <option value="CORPORATIVO">Corporativo</option>
                 <option value="EGRESADO">Egresado</option>
                 <option value="OTRO">Otro</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#8B949E] uppercase mb-2">Presupuesto por (Vendedor)</label>
+              <select 
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 focus:border-[#C8A951] outline-none"
+                value={formData.vendedor}
+                onChange={e => setFormData({...formData, vendedor: e.target.value})}
+              >
+                <option value="">Seleccionar...</option>
+                <option value="Mili">Mili</option>
+                <option value="Julia">Julia</option>
+                <option value="Franco">Franco</option>
+                <option value="Hernán">Hernán</option>
+                <option value="Otro">Otro</option>
               </select>
             </div>
 
@@ -409,6 +430,39 @@ export const CreateEventView: React.FC<CreateEventViewProps> = ({ onBack, onSave
               <div className="bg-[#1F6FEB]/5 border border-[#1F6FEB]/20 rounded-xl p-3 h-[48px] flex flex-col justify-center">
                 <span className="text-[10px] font-black uppercase text-[#1F6FEB] leading-none mb-1">Total Aprox</span>
                 <span className="text-lg font-display font-bold text-[#E6EDF3] leading-none">{totalGuests}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* --- ALQUILER DEL SALÓN --- */}
+          <SectionHeader title="Alquiler del Salón" />
+          <div className="bg-[#161B22] p-8 rounded-2xl border border-[#30363D]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold text-[#8B949E] uppercase mb-2">Monto total de Alquiler</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-3.5 text-[#8B949E] font-bold">$</span>
+                  <input 
+                    type="number" 
+                    placeholder="0"
+                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl pl-8 pr-4 py-3 outline-none focus:border-[#C8A951]" 
+                    value={formData.alquilerTotal}
+                    onChange={e => setFormData({...formData, alquilerTotal: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#8B949E] uppercase mb-2">Seña dejada</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-3.5 text-[#8B949E] font-bold">$</span>
+                  <input 
+                    type="number" 
+                    placeholder="0"
+                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl pl-8 pr-4 py-3 outline-none focus:border-[#C8A951]" 
+                    value={formData.alquilerSena}
+                    onChange={e => setFormData({...formData, alquilerSena: e.target.value})}
+                  />
+                </div>
               </div>
             </div>
           </div>

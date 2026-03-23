@@ -1,4 +1,4 @@
-export type UserRole = 'JEFE' | 'RECEPCIONISTA' | 'PRODUCCION' | 'TIO_FRANCO' | 'CATERING' | 'GUILLERMINA' | 'CLIENTE' | 'INVITADO';
+export type UserRole = 'JEFE' | 'RECEPCIONISTA' | 'MILI' | 'ENCARGADO' | 'PRODUCCION' | 'TIO_FRANCO' | 'CATERING' | 'GUILLERMINA' | 'CLIENTE' | 'INVITADO';
 
 export interface User {
   id: string;
@@ -32,6 +32,9 @@ export interface Event {
   cuit?: string;
   decorator_name?: string;
   decorator_phone?: string;
+  vendedor?: string;
+  alquiler_total?: number;
+  alquiler_sena?: number;
   salon_min_guests?: number;
   adult_guests?: number;
   young_guests?: number; // Replaces children
@@ -105,15 +108,19 @@ export interface ServiceItem {
   vigencia: string;
   category: string;
   authorityId?: string; // ID of the user who owns this service (e.g. Guillermina)
+  updatedBy?: string;  // Name/ID of the user who last updated the price
+  updatedAt?: string;  // ISO date of last update
 }
 
 export const USERS: User[] = [
   { id: '1', name: 'Franco', role: 'JEFE' },
   { id: '2', name: 'Julia', role: 'RECEPCIONISTA' },
+  { id: 'm1', name: 'Mili', role: 'MILI' },
   { id: '3', name: 'Hernán', role: 'PRODUCCION' },
   { id: '4', name: 'Tío Franco', role: 'TIO_FRANCO' },
   { id: '5', name: 'Guillermina', role: 'GUILLERMINA', email: 'guillermina@vicenzo.com' },
   { id: '6', name: 'Orlando', role: 'JEFE' },
+  { id: 'e1', name: 'Encargado 1', role: 'ENCARGADO' },
   { id: 'u3', name: 'Catering (Eugenio)', role: 'CATERING', email: 'eugenio@catering.com' },
   { id: 'u4', name: 'Usuario Invitado', role: 'INVITADO', email: 'invitado@vicenzo.com' },
 ];

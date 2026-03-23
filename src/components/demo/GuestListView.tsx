@@ -182,12 +182,14 @@ export const GuestListView = ({ user }: { user: User }) => {
                     
                     <div className="flex items-center gap-3">
                        <button onClick={() => removeGuest(g.id)} className="p-3 text-[#30363D] hover:text-[#F85149] transition-colors"><Trash2 size={16} /></button>
-                       <button 
-                         onClick={() => togglePresence(g.id)}
-                         className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all ${g.present ? 'bg-[#3FB950] border-[#3FB950] text-[#0D1117] shadow-lg shadow-[#3FB950]/20' : 'border-[#30363D] text-[#30363D] hover:border-[#3FB950] hover:text-[#3FB950]'}`}
-                       >
-                         <CheckCircle size={24} />
-                       </button>
+                       {user.role !== 'INVITADO' && (
+                         <button 
+                           onClick={() => togglePresence(g.id)}
+                           className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all ${g.present ? 'bg-[#3FB950] border-[#3FB950] text-[#0D1117] shadow-lg shadow-[#3FB950]/20' : 'border-[#30363D] text-[#30363D] hover:border-[#3FB950] hover:text-[#3FB950]'}`}
+                         >
+                           <CheckCircle size={24} />
+                         </button>
+                       )}
                     </div>
                   </div>
                 ))}

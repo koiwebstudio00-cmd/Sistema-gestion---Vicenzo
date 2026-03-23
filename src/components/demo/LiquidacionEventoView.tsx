@@ -4,19 +4,31 @@ import { formatCurrency, type User } from "../../features/demo/demoShared";
 
 export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, user: User, onBack: () => void }) => {
   // Mock constant for Tarjeta Chuchi Prices (Normally would come from the other view's state)
+  const [menuType, setMenuType] = useState('Menu 1');
+
+  // Dynamic Prices based on Menu Type
+  const menuPrices: Record<string, number> = {
+    'Menu 1': 75000,
+    'Menu 2': 92000,
+    'Menú Pollo': 68000,
+    'Buffet': 85000,
+    'Menú Jóvenes': 53000
+  };
+
   const tarjChuchiMarch = {
-    adults: 53000, // For March 2026
+    adults: menuPrices[menuType],
     kids: 26500,
     mozos: 52000
   };
 
   // Local State for manual entries
   const [showKids, setShowKids] = useState(false);
+  const initialAdults = event.guests?.adults || 120;
   const [data, setData] = useState({
-    cantAdultos: event.guests?.adults || 120,
+    cantAdultos: initialAdults,
     cantNinos: event.guests?.kids || 35,
-    valorCoca: 4500, // Manual example
-    cantMozos: 8,    // Only for adults
+    valorCoca: 4500, // Automátic from Chuchi
+    cantMozos: Math.ceil(initialAdults / 15), // Automatic calc: 1 every 15 adults
   });
 
   const commissionRate = useMemo(() => {
@@ -110,13 +122,28 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
               </thead>
               <tbody className="divide-y divide-[#30363D]/30">
                 <tr className="hover:bg-[#0D1117]/20 transition-colors">
-                  <td className="px-6 py-6 font-bold text-[#E6EDF3]">ADULTOS</td>
+                  <td className="px-6 py-6 font-bold text-[#E6EDF3]">
+                    <div className="flex flex-col gap-2">
+                       <span>ADULTOS</span>
+                       <select 
+                         value={menuType}
+                         onChange={(e) => setMenuType(e.target.value)}
+                         className="bg-[#0D1117] border border-[#30363D] text-[#8B949E] text-[10px] font-bold uppercase p-1.5 rounded-lg w-[120px] outline-none"
+                       >
+                         <option value="Menu 1">Menú 1</option>
+                         <option value="Menu 2">Menú 2</option>
+                         <option value="Menú Pollo">Menú Pollo</option>
+                         <option value="Buffet">Buffet</option>
+                         <option value="Menú Jóvenes">Menú Jóvenes</option>
+                       </select>
+                    </div>
+                  </td>
                   <td className="px-4 py-6">
                     <input type="number" value={data.cantAdultos} onChange={(e) => setData({...data, cantAdultos: parseInt(e.target.value) || 0})} className="w-20 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#3FB950] focus:border-[#3FB950] outline-none" />
                   </td>
                   <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(tarjChuchiMarch.adults)}</td>
                   <td className="px-4 py-6">
-                    <input type="number" value={data.valorCoca} onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})} className="w-24 mx-auto bg-[#0D1117] border border-[#C8A951]/30 rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#C8A951] outline-none" />
+                    <input type="number" value={data.valorCoca} onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})} className="w-24 mx-auto bg-[#0D1117] border border-[#F85149]/30 rounded-lg px-2 py-1.5 text-center font-bold text-[#F85149] focus:border-[#F85149] outline-none" />
                   </td>
                   <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(tarjChuchiMarch.mozos)}</td>
                   <td className="px-4 py-6">
@@ -173,7 +200,7 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
                 </div>
                 <div>
                   <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Gasto Coca (u)</label>
-                  <input type="number" value={data.valorCoca} onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#C8A951]/30 rounded-xl px-4 py-3 text-center font-black text-[#E6EDF3] text-sm outline-none focus:border-[#C8A951]" />
+                  <input type="number" value={data.valorCoca} onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#F85149]/30 rounded-xl px-4 py-3 text-center font-black text-[#F85149] text-sm outline-none focus:border-[#F85149]" />
                 </div>
               </div>
               <div className="pt-4 border-t border-[#30363D]/30 flex flex-col gap-4">
@@ -221,12 +248,12 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
               <Info size={16} /> Distribución según {event.category}
             </h3>
             <div className="space-y-4">
-              <div className="p-4 bg-[#3FB950]/5 border border-[#3FB950]/20 rounded-2xl">
-                <h4 className="text-[9px] font-black text-[#3FB950] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                   <div className="w-1.5 h-1.5 rounded-full bg-[#3FB950]" /> A FAVOR DEL SALÓN
+              <div className="p-4 bg-[#F85149]/5 border border-[#F85149]/20 rounded-2xl">
+                <h4 className="text-[9px] font-black text-[#F85149] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                   <div className="w-1.5 h-1.5 rounded-full bg-[#F85149]" /> A FAVOR DEL SALÓN
                 </h4>
                 <p className="text-xs text-[#E6EDF3]/80 leading-relaxed font-medium">
-                  El salón retiene la <strong className="text-[#3FB950]">comisión del {commissionRate}%</strong> y el cargo por <strong className="text-[#3FB950]">consumo de Coca-Cola</strong>.
+                  El salón retiene la <strong className="text-[#F85149]">comisión del {commissionRate}%</strong> y el cargo por <strong className="text-[#F85149]">consumo de Coca-Cola</strong>.
                 </p>
               </div>
               <div className="p-4 bg-[#E6EDF3]/5 border border-[#30363D] rounded-2xl">
@@ -247,12 +274,12 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
                 <span className="text-[#E6EDF3] font-black">{formatCurrency(calculations.subTotalGeneral)}</span>
               </div>
               <div className="flex justify-between items-center text-sm font-black">
-                <span className="text-[#3FB950]">Comisión Salón ({commissionRate}%)</span>
-                <span className="text-[#3FB950]">+ {formatCurrency(calculations.comision)}</span>
+                <span className="text-[#F85149]">Comisión Salón ({commissionRate}%)</span>
+                <span className="text-[#F85149]">- {formatCurrency(calculations.comision)}</span>
               </div>
               <div className="flex justify-between items-center text-sm font-black">
-                <span className="text-[#3FB950]">Gasto Coca (Salón)</span>
-                <span className="text-[#3FB950]">+ {formatCurrency(calculations.totalCoca)}</span>
+                <span className="text-[#F85149]">Gasto Coca (Salón)</span>
+                <span className="text-[#F85149]">- {formatCurrency(calculations.totalCoca)}</span>
               </div>
               <div className="flex justify-between items-center text-sm font-medium pt-2 border-t border-[#30363D]/30">
                 <span className="text-[#8B949E]">Gasto Mozos (Catering)</span>

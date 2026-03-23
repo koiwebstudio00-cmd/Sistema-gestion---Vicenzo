@@ -5,7 +5,7 @@ import { CATALOG_DATA, EVENTS_DATA, PACK_PREMIUM_ITEMS, USERS, formatCurrency, t
 import { Modal } from "../ui/Modal";
 
 
-export const CatalogView = () => {
+export const CatalogView = ({ user }: { user: User }) => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [editingItem, setEditingItem] = useState<ServiceItem | null>(null);
 
@@ -19,12 +19,14 @@ export const CatalogView = () => {
     <div className="p-4 lg:p-8 h-full flex flex-col">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4 lg:gap-0">
         <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Presupuesto de Servicios</h1>
-        <button
-          className="w-full lg:w-auto bg-[#1F6FEB] hover:bg-[#388BFD] text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
-        >
-          <Plus size={18} />
-          Agregar servicio
-        </button>
+        {(user.role === 'JEFE' || user.role === 'GUILLERMINA') && (
+          <button
+            className="w-full lg:w-auto bg-[#1F6FEB] hover:bg-[#388BFD] text-white px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            <Plus size={18} />
+            Agregar servicio
+          </button>
+        )}
       </div>
 
       {/* Mobile Category Filter (Dropdown) */}
@@ -93,12 +95,14 @@ export const CatalogView = () => {
                   <td className="p-4 text-[#8B949E] text-sm">{item.vigencia}</td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => setEditingItem(item)}
-                        className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors"
-                      >
-                        <Edit2 size={16} />
-                      </button>
+                      {(user.role === 'JEFE' || user.role === 'GUILLERMINA' || user.role === 'RECEPCIONISTA') && (
+                        <button
+                          onClick={() => setEditingItem(item)}
+                          className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                      )}
                       <button className="p-1.5 text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#30363D] rounded transition-colors">
                         <FileText size={16} />
                       </button>
@@ -120,12 +124,14 @@ export const CatalogView = () => {
           >
             <div className="flex justify-between items-start mb-2">
               <div className="font-medium text-[#E6EDF3] text-lg leading-tight pr-2">{item.name}</div>
-              <button
-                onClick={() => setEditingItem(item)}
-                className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors shrink-0"
-              >
-                <Edit2 size={16} />
-              </button>
+              {(user.role === 'JEFE' || user.role === 'GUILLERMINA' || user.role === 'RECEPCIONISTA') && (
+                <button
+                  onClick={() => setEditingItem(item)}
+                  className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors shrink-0"
+                >
+                  <Edit2 size={16} />
+                </button>
+              )}
             </div>
 
             <div className="mb-3">
@@ -167,6 +173,11 @@ export const CatalogView = () => {
         title="Editar Precio"
         footer={
           <>
+            {(editingItem?.updatedBy) && (
+              <div className="mr-auto text-[10px] text-[#8B949E] italic text-left">
+                Actualizado por {editingItem.updatedBy} <br/> el {editingItem.updatedAt}
+              </div>
+            )}
             <button onClick={() => setEditingItem(null)} className="px-4 py-2 text-[#E6EDF3] hover:bg-[#30363D] rounded-lg font-medium transition-colors">Cancelar</button>
             <button onClick={() => setEditingItem(null)} className="px-4 py-2 bg-[#C8A951] text-[#0D1117] rounded-lg font-bold hover:bg-[#D4B96A] transition-colors">Guardar Cambios</button>
           </>

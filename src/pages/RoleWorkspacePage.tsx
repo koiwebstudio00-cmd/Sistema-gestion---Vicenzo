@@ -1,4 +1,4 @@
-import { BarChart3, ChevronLeft, Clock, FileText, LogOut, Package, Settings } from 'lucide-react';
+import { BarChart3, ChevronLeft, Clock, FileText, LogOut, Package, Search, Settings } from 'lucide-react';
 import { useState } from 'react';
 import {
   AgendaView,
@@ -14,6 +14,7 @@ import {
   UsersView,
   GuestListView,
   GestionCobrosView,
+  AveriguacionesView,
   type User,
 } from '../features/demo/DemoModule';
 import { AppShell } from '../layouts/AppShell';
@@ -57,7 +58,11 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
 
   const renderCurrentView = () => {
     if (currentView === 'AGENDA') {
-      return <AgendaView onSelectEvent={handleSelectEvent} />;
+      return <AgendaView onSelectEvent={handleSelectEvent} user={user} />;
+    }
+
+    if (currentView === 'AVERIGUACIONES') {
+      return <AveriguacionesView user={user} />;
     }
 
     if (currentView === 'EVENTOS') {
@@ -90,10 +95,12 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
     }
 
     if (currentView === 'CATALOGO') {
-      return <CatalogView />;
+      return <CatalogView user={user} />;
     }
 
     if (currentView === 'PAGOS') {
+      const isRestricted = ['RECEPCIONISTA', 'MILI', 'ENCARGADO', 'PRODUCCION', 'TIO_FRANCO', 'CATERING'].includes(user.role);
+      if (isRestricted) return <AgendaView onSelectEvent={handleSelectEvent} user={user} />;
       return <PaymentsView onSelectEvent={handleSelectEvent} user={user} />;
     }
 
@@ -168,9 +175,10 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
 
     if (currentView === 'MORE') {
       const menuItems = [
-        { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
-        { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO'] },
-        { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO'] },
+        { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'ENCARGADO'] },
+        { id: 'AVERIGUACIONES', label: 'Averiguaciones', icon: Search, roleSpecific: ['JEFE', 'RECEPCIONISTA', 'MILI', 'GUILLERMINA'] },
+        { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
+        { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
         { id: 'CONFIGURACION', label: 'Configuración', icon: Settings },
       ];
 
@@ -203,7 +211,6 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
                 <span className="text-[11px] font-black uppercase tracking-widest text-[#E6EDF3] text-center">{item.label}</span>
               </button>
             ))}
-            
             <button
                onClick={onLogout}
                className="col-span-2 bg-[#F85149]/10 border border-[#F85149]/20 rounded-3xl p-5 flex items-center justify-center gap-3 mt-4 text-[#F85149] font-black uppercase tracking-widest text-[11px] active:scale-95 transition-all"
@@ -219,7 +226,7 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
       );
     }
 
-    return <AgendaView onSelectEvent={handleSelectEvent} />;
+    return <AgendaView onSelectEvent={handleSelectEvent} user={user} />;
   };
 
   return (

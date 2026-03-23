@@ -12,6 +12,7 @@ import {
   X,
   Users,
   Wallet,
+  Search,
 } from 'lucide-react';
 import type { User } from '../../features/demo/demoShared';
 
@@ -30,11 +31,12 @@ export const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onCl
   const menuItems = [
     { id: 'AGENDA', label: 'Agenda', icon: Calendar },
     { id: 'EVENTOS', label: 'Eventos', icon: FileText },
-    { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
-    { id: 'PAGOS', label: 'Historial de Cobros', icon: CreditCard, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
-    { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO'] },
-    { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO'] },
-    { id: 'GASTOS', label: 'Gastos Semanales', icon: DollarSign, restricted: ['RECEPCIONISTA', 'PRODUCCION', 'CATERING', 'INVITADO'] },
+    { id: 'AVERIGUACIONES', label: 'Averiguaciones', icon: Search, roleSpecific: ['JEFE', 'RECEPCIONISTA', 'MILI', 'GUILLERMINA'] },
+    { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'ENCARGADO'] },
+    { id: 'PAGOS', label: 'Historial de Cobros', icon: CreditCard, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
+    { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
+    { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
+    { id: 'GASTOS', label: 'Gastos Semanales', icon: DollarSign, restricted: ['RECEPCIONISTA', 'MILI', 'PRODUCCION', 'CATERING', 'INVITADO', 'ENCARGADO'] },
     { id: 'COBROS', label: 'Mis Cobros', icon: Wallet, roleSpecific: ['GUILLERMINA', 'JEFE'] },
     { id: 'GUESTS', label: 'Lista de Invitados', icon: Users, roleSpecific: ['INVITADO'] },
     { id: 'PLANILLA', label: 'Planilla Operativa', icon: FileText, roleSpecific: ['INVITADO'] },

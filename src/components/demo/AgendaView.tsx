@@ -5,7 +5,7 @@ import { CATALOG_DATA, EVENTS_DATA, PACK_PREMIUM_ITEMS, USERS, formatCurrency, t
 import { Modal } from "../ui/Modal";
 
 
-export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => void }) => {
+export const AgendaView = ({ onSelectEvent, user }: { onSelectEvent: (id: string) => void, user: User }) => {
   const [viewMode, setViewMode] = useState<'ANNUAL' | 'MONTHLY'>('ANNUAL');
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
@@ -213,8 +213,11 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
               return (
                 <div
                   key={month}
-                  onClick={() => handleMonthClick(index)}
-                  className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 hover:border-[#8B949E] cursor-pointer transition-all group relative overflow-hidden"
+                  onClick={() => {
+                    const isRestricted = (user.role === 'ENCARGADO' || user.role === 'TIO_FRANCO');
+                    if (!isRestricted) handleMonthClick(index);
+                  }}
+                  className={`bg-[#161B22] border border-[#30363D] rounded-xl p-4 hover:border-[#8B949E] transition-all group relative overflow-hidden ${user.role === 'ENCARGADO' || user.role === 'TIO_FRANCO' ? 'cursor-default' : 'cursor-pointer'}`}
                 >
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-lg font-bold text-[#E6EDF3] group-hover:text-[#C8A951] transition-colors">{month}</h3>

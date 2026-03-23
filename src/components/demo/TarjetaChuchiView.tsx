@@ -94,6 +94,9 @@ export const TarjetaChuchiView = ({ user, onBack }: { user: User, onBack: () => 
                 <Lock size={12} /> Sólo lectura
               </div>
             )}
+            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-[#C8A951]/10 text-[#C8A951] border border-[#C8A951]/30 hover:bg-[#C8A951]/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#C8A951]/5">
+              <RefreshCw size={16} /> <span className="hidden sm:inline">Archivar Año</span>
+            </button>
             <button className="flex-1 sm:flex-none px-6 py-3 bg-[#1F6FEB] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#388BFD] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#1F6FEB]/20">
               <Save size={16} /> <span className="hidden sm:inline">Guardar cambios</span><span className="sm:hidden">Guardar</span>
             </button>

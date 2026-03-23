@@ -30,3 +30,4 @@ export { Sidebar } from '../../components/demo/Sidebar';
 export { UsersView } from '../../components/demo/UsersView';
 export { GuestListView } from '../../components/demo/GuestListView';
 export { GestionCobrosView } from '../../components/demo/GestionCobrosView';
+export { AveriguacionesView } from '../../components/demo/AveriguacionesView';
