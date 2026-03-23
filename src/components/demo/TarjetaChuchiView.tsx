@@ -10,13 +10,15 @@ const ROWS = [
   'BUFFET 1', 
   'BUFFET 2', 
   'NIÑOS', 
-  'MOZOS'
+  'MOZOS',
+  'COCA'
 ];
 
 export const TarjetaChuchiView = ({ user, onBack }: { user: User, onBack: () => void }) => {
   const isJefe = user.role === 'JEFE';
+  const currentMonthIdx = new Date().getMonth();
   
-  // Initial Mock Data for ENE
+  // Initial Mock Data base for calculation
   const initialBase: Record<string, number> = {
     'MENU 1': 53000,
     'MENU 2 POLLO': 68500,
@@ -24,16 +26,20 @@ export const TarjetaChuchiView = ({ user, onBack }: { user: User, onBack: () => 
     'BUFFET 1': 8500,
     'BUFFET 2': 12200,
     'NIÑOS': 26500,
-    'MOZOS': 52000
+    'MOZOS': 52000,
+    'COCA': 15000
   };
 
-  // State to hold the full 12x7 grid
+  const [increaseRate, setIncreaseRate] = useState(3);
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(currentMonthIdx);
+  
+  // State to hold the full 12x8 grid
   const [prices, setPrices] = useState<Record<string, number[]>>(() => {
     const grid: Record<string, number[]> = {};
     ROWS.forEach(row => {
       grid[row] = Array(12).fill(0);
       grid[row][0] = initialBase[row] || 0;
-      // Auto-calculate others based on 3% monthly increase
+      // Auto-calculate others based on 3% monthly increase as starting point
       for (let i = 1; i < 12; i++) {
         grid[row][i] = Math.round(grid[row][i-1] * 1.03);
       }
@@ -41,21 +47,28 @@ export const TarjetaChuchiView = ({ user, onBack }: { user: User, onBack: () => 
     return grid;
   });
 
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState(new Date().getMonth());
-  
   const handlePriceChange = (row: string, monthIdx: number, val: string) => {
-    if (!isJefe) return;
+    if (!isJefe || monthIdx !== currentMonthIdx) return;
     const newVal = parseInt(val) || 0;
     const newPrices = { ...prices };
     newPrices[row][monthIdx] = newVal;
+    
+    // Auto-calculate future months based on current increaseRate
+    for (let i = monthIdx + 1; i < 12; i++) {
+      newPrices[row][i] = Math.round(newPrices[row][i-1] * (1 + increaseRate / 100));
+    }
+    
     setPrices(newPrices);
   };
 
-  const cascadeCalculation = (row: string) => {
+  const cascadeAllRows = (rate: number) => {
     const newPrices = { ...prices };
-    for (let i = 1; i < 12; i++) {
-      newPrices[row][i] = Math.round(newPrices[row][i-1] * 1.03);
-    }
+    ROWS.forEach(row => {
+      // We only cascade from current month forward
+      for (let i = currentMonthIdx + 1; i < 12; i++) {
+        newPrices[row][i] = Math.round(newPrices[row][i-1] * (1 + rate / 100));
+      }
+    });
     setPrices(newPrices);
   };
 
@@ -87,22 +100,41 @@ export const TarjetaChuchiView = ({ user, onBack }: { user: User, onBack: () => 
           </div>
         </div>
 
-        {/* Legend / Info */}
-        <div className="mb-8 p-5 bg-[#161B22] border border-[#30363D] rounded-3xl flex flex-col md:flex-row md:items-center gap-6 relative overflow-hidden">
+        {/* Increase Rate Selector */}
+        <div className="mb-8 p-5 bg-[#161B22] border border-[#30363D] rounded-3xl flex flex-col md:flex-row md:items-center gap-6 relative overflow-hidden shadow-xl">
           <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
             <TrendingUp size={80} />
           </div>
-          <div className="flex items-center gap-4 relative z-10">
-            <div className="p-3 bg-[#3FB950]/20 text-[#3FB950] rounded-2xl border border-[#3FB950]/20"><TrendingUp size={24} /></div>
+          <div className="flex items-center gap-4 relative z-10 shrink-0">
+            <div className="p-3 bg-[#C8A951]/20 text-[#C8A951] rounded-2xl border border-[#C8A951]/20 shadow-inner">
+              <TrendingUp size={24} />
+            </div>
             <div>
-              <h3 className="text-xs font-black text-[#E6EDF3] uppercase tracking-widest mb-1">Automatización Proyectada</h3>
-              <p className="text-[11px] text-[#8B949E] leading-relaxed">Cálculo inflacionario del <strong>3% mensual</strong> basado en el costo del mes anterior.</p>
+              <h3 className="text-[10px] font-black text-[#8B949E] uppercase tracking-[0.2em] mb-1">Aumento Mensual Proyectado</h3>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="number"
+                  value={increaseRate}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setIncreaseRate(val);
+                    cascadeAllRows(val);
+                  }}
+                  className="w-20 bg-[#0D1117] border border-[#C8A951]/30 rounded-xl px-3 py-2 text-center font-display font-black text-[#C8A951] outline-none focus:border-[#C8A951] transition-all"
+                />
+                <span className="text-xl font-display font-black text-[#C8A951]">%</span>
+              </div>
             </div>
           </div>
-          <div className="h-10 w-px bg-[#30363D] hidden md:block" />
-          <p className="text-[10px] text-[#C8A951] italic relative z-10">
-            Tip: Al cargar enero, puedes proyectar todo el año automáticamente con el botón de refresco.
-          </p>
+          <div className="h-12 w-px bg-[#30363D] hidden md:block" />
+          <div className="relative z-10 flex-1">
+            <p className="text-sm text-[#E6EDF3] font-medium leading-tight mb-1">
+              Solo el <strong className="text-[#C8A951]">mes vigente ({MONTHS[currentMonthIdx]})</strong> es editable. 
+            </p>
+            <p className="text-[11px] text-[#8B949E] leading-relaxe">
+              Al modificar el precio actual, los meses futuros se recalculan automáticamente usando el <strong className="text-[#C8A951]">{increaseRate}%</strong> de aumento. Los meses pasados permanecen bloqueados.
+            </p>
+          </div>
         </div>
 
         {/* Month Selector - MOBILE ONLY */}
@@ -110,18 +142,21 @@ export const TarjetaChuchiView = ({ user, onBack }: { user: User, onBack: () => 
            <button 
              onClick={() => setSelectedMonthIdx(prev => Math.max(0, prev - 1))}
              disabled={selectedMonthIdx === 0}
-             className="p-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-[#E6EDF3] disabled:opacity-20 active:scale-90 transition-all"
+             className="p-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-[#E6EDF3] disabled:opacity-10 active:scale-90 transition-all shadow-lg"
            >
              <ChevronLeft size={20} />
            </button>
            <div className="flex-1 text-center">
-             <div className="text-[10px] font-black text-[#C8A951] uppercase tracking-[0.3em] mb-1">MES SELECCIONADO</div>
-             <div className="text-xl font-display font-black text-[#E6EDF3] tracking-widest">{MONTHS[selectedMonthIdx]}</div>
+             <div className="text-[9px] font-black text-[#C8A951] uppercase tracking-[0.35em] mb-1">MES SELECCIONADO</div>
+             <div className="text-2xl font-display font-black text-[#E6EDF3] tracking-widest flex items-center justify-center gap-2">
+               {MONTHS[selectedMonthIdx]}
+               {selectedMonthIdx === currentMonthIdx && <div className="w-2 h-2 rounded-full bg-[#C8A951] animate-pulse" />}
+             </div>
            </div>
            <button 
              onClick={() => setSelectedMonthIdx(prev => Math.min(11, prev + 1))}
              disabled={selectedMonthIdx === 11}
-             className="p-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-[#E6EDF3] disabled:opacity-20 active:scale-90 transition-all"
+             className="p-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-[#E6EDF3] disabled:opacity-10 active:scale-90 transition-all shadow-lg"
            >
              <ChevronRight size={20} />
            </button>
@@ -130,40 +165,62 @@ export const TarjetaChuchiView = ({ user, onBack }: { user: User, onBack: () => 
         {/* Desktop View Table */}
         <div className="hidden lg:block bg-[#161B22] border border-[#30363D] rounded-3xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-separate border-spacing-0">
               <thead>
-                <tr className="bg-[#1C2128] border-b border-[#30363D]">
-                  <th className="px-6 py-4 text-[10px] font-black text-[#8B949E] uppercase tracking-widest bg-[#1C2128] sticky left-0 z-10 w-[200px]">RUBRO</th>
-                  {MONTHS.map(m => (
-                    <th key={m} className="px-4 py-4 text-[10px] font-black text-[#8B949E] uppercase tracking-widest text-center min-w-[120px]">{m}</th>
+                <tr className="bg-[#1C2128]">
+                  <th className="px-6 py-6 text-[10px] font-black text-[#8B949E] uppercase tracking-[0.2em] bg-[#1C2128] sticky left-0 z-20 w-[220px] border-b border-[#30363D]">RUBRO</th>
+                  {MONTHS.map((m, idx) => (
+                    <th 
+                      key={m} 
+                      className={`px-4 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-center min-w-[130px] border-b ${idx === currentMonthIdx ? 'text-[#C8A951] bg-[#C8A951]/5 border-x border-[#C8A951]/20' : 'text-[#8B949E] border-[#30363D]'}`}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <span>{m}</span>
+                        {idx === currentMonthIdx && (
+                          <span className="text-[8px] px-2 py-0.5 bg-[#C8A951] text-[#0D1117] rounded-full tracking-normal">VIGENTE</span>
+                        )}
+                        {idx < currentMonthIdx && (
+                          <span className="text-[7px] text-[#8B949E]/50 tracking-tighter italic">CERRADO</span>
+                        )}
+                      </div>
+                    </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#30363D]/50 text-sm">
+              <tbody className="divide-y divide-[#30363D]/40 text-sm">
                 {ROWS.map(row => (
-                  <tr key={row} className="hover:bg-[#0D1117]/20 transition-colors group">
-                    <td className="px-6 py-4 font-bold text-[#E6EDF3] bg-[#161B22] sticky left-0 z-10 border-r border-[#30363D]/30 flex items-center justify-between">
-                      <span className="text-xs tracking-tight">{row}</span>
-                      {isJefe && (
-                        <button 
-                          onClick={() => cascadeCalculation(row)}
-                          title="Proyectar año (+3% mensual)"
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#30363D] rounded transition-all text-[#3FB950]"
-                        >
-                          <RefreshCw size={12} />
-                        </button>
-                      )}
+                  <tr key={row} className="group">
+                    <td className="px-6 py-5 font-black text-[#E6EDF3] bg-[#161B22] sticky left-0 z-20 border-r border-[#30363D]/30 shadow-xl flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-[11px] uppercase tracking-tight">{row}</span>
+                        {row === 'COCA' && <span className="text-[8px] text-[#388BFD] font-bold tracking-widest mt-0.5 group-hover:animate-pulse">A FAVOR DEL SALÓN</span>}
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-all">
+                        <Lock size={12} className={row === 'COCA' ? 'text-[#388BFD]' : 'text-[#8B949E]/40'} />
+                      </div>
                     </td>
-                    {prices[row].map((price: number, idx: number) => (
-                      <td key={idx} className="px-2 py-3">
+                    {prices[row].map((price, idx) => (
+                      <td 
+                        key={idx} 
+                        className={`px-3 py-4 transition-all ${idx === currentMonthIdx ? 'bg-[#C8A951]/5 border-x border-[#C8A951]/10' : ''} ${idx < currentMonthIdx ? 'opacity-30 grayscale' : ''}`}
+                      >
                         <div className="relative group/cell">
                           <input 
                             type="number" 
-                            disabled={!isJefe}
+                            disabled={!isJefe || idx !== currentMonthIdx}
                             value={price}
                             onChange={(e) => handlePriceChange(row, idx, e.target.value)}
-                            className={`w-full bg-[#0D1117] border ${idx === 0 ? 'border-[#C8A951]/30' : 'border-[#30363D]'} rounded-xl px-3 py-2 text-center font-display font-medium text-[#E6EDF3] outline-none focus:border-[#C8A951] ${!isJefe && 'cursor-not-allowed opacity-80'}`}
+                            className={`w-full bg-[#0D1117] border rounded-xl px-3 py-2.5 text-center font-display font-black shadow-inner transition-all
+                              ${idx === currentMonthIdx 
+                                ? 'border-[#C8A951] text-[#C8A951] focus:ring-2 focus:ring-[#C8A951]/20' 
+                                : 'border-[#30363D] text-[#E6EDF3]/80'}
+                              ${(!isJefe || idx !== currentMonthIdx) ? 'cursor-not-allowed text-[11px]' : 'text-sm'}`}
                           />
+                          {idx !== currentMonthIdx && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/cell:opacity-100 transition-all pointer-events-none">
+                               <Lock size={10} className="text-[#8B949E]" />
+                            </div>
+                          )}
                         </div>
                       </td>
                     ))}
@@ -174,41 +231,50 @@ export const TarjetaChuchiView = ({ user, onBack }: { user: User, onBack: () => 
           </div>
         </div>
 
-        {/* Mobile View - Single Month List (No more sliders!) */}
-        <div className="lg:hidden space-y-3">
+        {/* Mobile View - Cards */}
+        <div className="lg:hidden space-y-4">
            {ROWS.map(row => (
-             <div key={row} className="bg-[#161B22] border border-[#30363D] rounded-2xl p-4 flex items-center justify-between gap-4">
+             <div key={row} className={`bg-[#161B22] border rounded-3xl p-5 flex items-center justify-between gap-4 shadow-xl transition-all ${selectedMonthIdx === currentMonthIdx ? 'border-[#C8A951]/40' : 'border-[#30363D]'}`}>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest mb-1">Rubro</div>
-                  <div className="text-xs font-black text-[#E6EDF3] truncate leading-tight uppercase tracking-tight">{row}</div>
-                  {isJefe && selectedMonthIdx === 0 && (
-                    <button 
-                      onClick={() => cascadeCalculation(row)}
-                      className="mt-2 text-[9px] font-black text-[#3FB950] uppercase tracking-widest flex items-center gap-1.5 bg-[#3FB950]/10 px-2 py-1 rounded-lg"
-                    >
-                      <RefreshCw size={10} /> Proyectar Año
-                    </button>
-                  )}
+                  <div className="text-[9px] font-black text-[#8B949E] uppercase tracking-[0.2em] mb-1">Rubro</div>
+                  <div className="text-sm font-black text-[#E6EDF3] truncate tracking-tight uppercase">{row}</div>
+                  {row === 'COCA' && <span className="text-[8px] bg-[#388BFD]/20 text-[#388BFD] px-2 py-0.5 rounded-full font-black mt-2 inline-block">SALÓN</span>}
                 </div>
-                <div className="w-40">
-                  <div className="text-[9px] font-black text-[#C8A951] uppercase tracking-widest mb-1 text-right">Precio Actual</div>
-                  <div className="relative">
+                <div className="w-44 relative">
+                  <div className="text-[9px] font-black uppercase tracking-widest mb-1.5 text-right flex items-center justify-end gap-1.5">
+                    {selectedMonthIdx === currentMonthIdx ? (
+                      <span className="text-[#C8A951] flex items-center gap-1">Vigente <div className="w-1.5 h-1.5 rounded-full bg-[#C8A951] animate-pulse" /></span>
+                    ) : (
+                      <span className="text-[#8B949E]">{selectedMonthIdx < currentMonthIdx ? 'Cerrado' : 'Proyectado'}</span>
+                    )}
+                  </div>
+                  <div className="relative group">
                     <input 
                       type="number" 
-                      disabled={!isJefe}
+                      disabled={!isJefe || selectedMonthIdx !== currentMonthIdx}
                       value={prices[row][selectedMonthIdx]}
                       onChange={(e) => handlePriceChange(row, selectedMonthIdx, e.target.value)}
-                      className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-right font-display font-black text-[#E6EDF3] outline-none focus:border-[#C8A951] text-sm"
+                      className={`w-full bg-[#0D1117] border shadow-2xl rounded-2xl px-4 py-3.5 text-right font-display font-black outline-none transition-all
+                        ${selectedMonthIdx === currentMonthIdx 
+                          ? 'border-[#C8A951] text-[#C8A951] text-lg' 
+                          : 'border-[#30363D] text-[#8B949E] text-base opacity-60'}`}
                     />
+                    {selectedMonthIdx !== currentMonthIdx && (
+                      <Lock size={14} className="absolute left-4 top-4 text-[#8B949E]/40" />
+                    )}
                   </div>
                 </div>
              </div>
            ))}
         </div>
 
-        {/* Footer Notes */}
-        <div className="mt-8 text-center">
-            <p className="text-[10px] text-[#8B949E] uppercase tracking-[0.2em]">Última actualización: Hoy, 17:35 hs — por {user.name}</p>
+        {/* Footer info */}
+        <div className="mt-12 p-6 bg-[#1C2128]/50 border border-[#30363D] rounded-3xl flex flex-col items-center gap-3 text-center">
+            <div className="flex items-center gap-2 px-4 py-1.5 bg-[#161B22] border border-[#30363D] rounded-full">
+              <div className="w-2 h-2 rounded-full bg-[#3FB950] shadow-glow" />
+              <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest leading-none mt-0.5">Sistema de Auditoría Activo</span>
+            </div>
+            <p className="text-[10px] text-[#8B949E] uppercase tracking-[0.25em]">Actualizado por {user.name} • {new Date().toLocaleDateString()}</p>
         </div>
       </div>
     </div>

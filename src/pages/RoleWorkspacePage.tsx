@@ -13,6 +13,7 @@ import {
   ReportsView,
   UsersView,
   GuestListView,
+  GestionCobrosView,
   type User,
 } from '../features/demo/DemoModule';
 import { AppShell } from '../layouts/AppShell';
@@ -110,6 +111,10 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
 
     if (currentView === 'GUESTS') {
       return <GuestListView user={user} />;
+    }
+
+    if (currentView === 'COBROS') {
+      return <GestionCobrosView user={user} />;
     }
 
     if (currentView === 'PLANILLA') {

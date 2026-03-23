@@ -29,3 +29,4 @@ export { ReportsView } from '../../components/demo/ReportsView';
 export { Sidebar } from '../../components/demo/Sidebar';
 export { UsersView } from '../../components/demo/UsersView';
 export { GuestListView } from '../../components/demo/GuestListView';
+export { GestionCobrosView } from '../../components/demo/GestionCobrosView';

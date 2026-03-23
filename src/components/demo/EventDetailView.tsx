@@ -8,6 +8,7 @@ import {
   Clock, 
   CreditCard, 
   DollarSign, 
+  Edit2,
   FileText, 
   MapPin, 
   Printer, 
@@ -23,10 +24,12 @@ const INCLUDED_FURNITURE_LIST = ['Mesas redondas', 'Mesas cuadradas', 'Sillas me
 export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, onBack: () => void, user: User }) => {
   const [status, setStatus] = useState<EventStatus>('SENA_EN_PROCESO');
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [isPlanillaOpen, setIsPlanillaOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
   const [selectedCategoryForPayment, setSelectedCategoryForPayment] = useState<string | null>(null);
+  const [selectedItemForPayment, setSelectedItemForPayment] = useState<any | null>(null);
   const [isAddFurnitureOpen, setIsAddFurnitureOpen] = useState(false);
   const [isAddCateringOpen, setIsAddCateringOpen] = useState(false);
   const [isAddExtraOpen, setIsAddExtraOpen] = useState(false);
@@ -53,7 +56,7 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
     {
       category: "ALQUILER DEL SALÓN",
       items: [
-        { name: "Alquiler del Salón", qty: "1u", price: 3500000, status: "PAGADO", isMandatory: true, amountPaid: 3500000, paymentMonth: 'Enero', paymentMethod: 'Efectivo' },
+        { name: "Alquiler del Salón", qty: "1u", price: 3500000, status: "A CUENTA", isMandatory: true, amountPaid: 850000, paymentMonth: 'Enero', paymentMethod: 'Efectivo', lastPaymentDate: "12/03/26" },
       ]
     },
     {
@@ -146,11 +149,37 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
   const [cateringForm, setCateringForm] = useState({ type: 'JOVENES' as 'JOVENES'|'ADULTOS'|'NINOS'|'DESPUES'|'MOZOS', menuType: 'M1', buffet: false, qty: '', price: '' });
   const [extraForm, setExtraForm] = useState({ name: '', qty: '', price: '', status: 'PENDIENTE' });
 
+  const areSenasPaid = useMemo(() => {
+    const salonSena = services.find(s => s.category === "ALQUILER DEL SALÓN")?.items[0];
+    const tecnicaSena = services.find(s => s.category === "TÉCNICA")?.items.find(i => i.name.includes("Música, Luces y Pantallas"));
+    return salonSena?.status === "PAGADO" && tecnicaSena?.status === "PAGADO";
+  }, [services]);
+
   if (isPlanillaOpen) return <div className="p-8"><button onClick={() => setIsPlanillaOpen(false)}>Cerrar</button></div>;
 
   return (
-    <div className="p-4 lg:p-8 min-h-screen bg-[#0D1117] text-[#E6EDF3]">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-4 lg:p-8 min-h-screen bg-[#0D1117] text-[#E6EDF3] relative font-sans">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: portrait; margin: 0.5cm !important; }
+          html, body { background-color: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
+          #sidebar, nav, aside, .no-print, header, [role="navigation"], .print-hidden, .print:hidden { display: none !important; }
+          .print-visible { display: block !important; visibility: visible !important; }
+          .print-container { 
+            position: absolute !important; 
+            left: 0 !important; 
+            top: 0 !important; 
+            width: 100% !important; 
+            color: black !important; 
+            background: white !important; 
+            z-index: 9999 !important;
+          }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+      `}} />
+
+      {/* Interactive UI - Hidden on Print */}
+      <div className="max-w-7xl mx-auto print:hidden print-hidden">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
           <div className="flex flex-col gap-4 w-full">
@@ -193,77 +222,83 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                   <div className="p-2 bg-[#C8A951]/10 rounded-lg text-[#C8A951]"><MapPin size={14} /></div>
                   <span className="font-medium">{eventData.salon}</span>
                 </div>
-                <div className="hidden sm:flex items-center gap-2 bg-[#0D1117] px-3 py-1.5 rounded-lg border border-[#30363D] text-[10px] text-[#8B949E]">
-                  <span className="font-black text-[#6E7681]">VALIDEZ:</span> 
-                  {(() => {
-                    const d = new Date(eventData.createdAt);
-                    d.setDate(d.getDate() + 30);
-                    return d.toLocaleDateString('es-AR');
-                  })()}
-                </div>
+                {!areSenasPaid && (
+                  <div className="hidden sm:flex items-center gap-2 bg-[#0D1117] px-3 py-1.5 rounded-lg border border-[#30363D] text-[10px] text-[#8B949E]">
+                    <span className="font-black text-[#6E7681]">VALIDEZ PRECIO SEÑA:</span> 
+                    {(() => {
+                      const d = new Date(eventData.createdAt);
+                      d.setDate(d.getDate() + 30);
+                      return d.toLocaleDateString('es-AR');
+                    })()}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-            <button onClick={() => setIsPlanillaOpen(true)} className="flex-1 sm:flex-none px-4 py-3 bg-[#161B22] border border-[#30363D] hover:bg-[#30363D] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
-              <Printer size={16} /> Planilla
+            <button onClick={() => window.print()} className="flex-1 sm:flex-none px-4 py-3 bg-[#161B22] border border-[#30363D] hover:bg-[#30363D] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+              <Printer size={16} /> Imprimir
             </button>
-            <button onClick={() => setIsBalanceModalOpen(true)} className="flex-1 sm:flex-none px-4 py-3 bg-[#C8A951] text-[#0D1117] hover:bg-[#E3B341] rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C8A951]/10">
-              Balance ⚖️
-            </button>
-            <div className="relative flex-1 sm:flex-none">
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as EventStatus)}
-                className={`w-full appearance-none border font-black rounded-xl pl-4 pr-10 py-3 text-xs outline-none ${
-                  status === 'CONFIRMADO' ? 'bg-[#3FB950]/10 border-[#3FB950]/30 text-[#3FB950]' :
-                  status === 'SENA_EN_PROCESO' ? 'bg-[#C8A951]/10 border-[#C8A951]/30 text-[#C8A951]' :
-                  status === 'POR_SENAR' ? 'bg-[#D29922]/10 border-[#D29922]/30 text-[#D29922]' :
-                  'bg-[#F85149]/10 border-[#F85149]/30 text-[#F85149]'
-                }`}
-              >
-                <option value="POR_SENAR">POR SEÑAR</option>
-                <option value="SENA_EN_PROCESO">SEÑA EN PROCESO</option>
-                <option value="CONFIRMADO">CONFIRMADO</option>
-                <option value="CANCELADO">CANCELADO</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 pointer-events-none opacity-50" />
+            {(user.role === 'JEFE' || user.role === 'RECEPCIONISTA') && (
+              <>
+                <button onClick={() => setIsPlanillaOpen(true)} className="flex-1 sm:flex-none px-4 py-3 bg-[#161B22] border border-[#30363D] hover:bg-[#30363D] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                  <FileText size={16} /> Planilla
+                </button>
+                <button onClick={() => setIsBalanceModalOpen(true)} className="flex-1 sm:flex-none px-4 py-3 bg-[#C8A951] text-[#0D1117] hover:bg-[#E3B341] rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C8A951]/10">
+                  Balance ⚖️
+                </button>
+              </>
+            )}
+
+            <div className="relative flex-1 sm:flex-none flex items-center gap-2">
+              {!isEditingStatus ? (
+                <button 
+                  onClick={() => setIsEditingStatus(true)}
+                  className="p-3 bg-[#161B22] border border-[#30363D] hover:border-[#8B949E] rounded-xl text-[#8B949E] hover:text-[#E6EDF3] transition-all"
+                >
+                  <Edit2 size={18} />
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
+                  <select
+                    value={status}
+                    autoFocus
+                    onChange={(e) => { 
+                      setStatus(e.target.value as EventStatus);
+                      setIsEditingStatus(false);
+                    }}
+                    onBlur={() => setIsEditingStatus(false)}
+                    className="appearance-none border bg-[#161B22] border-[#30363D] font-black rounded-xl px-4 py-3 text-xs outline-none text-[#E6EDF3] focus:border-[#C8A951] custom-select"
+                  >
+                    <option value="POR_SENAR">POR SEÑAR</option>
+                    <option value="SENA_EN_PROCESO">SEÑA EN PROCESO</option>
+                    <option value="CONFIRMADO">CONFIRMADO</option>
+                    <option value="CANCELADO">CANCELADO</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* --- DASHBOARD FINANCIERO (Solo Admin) --- */}
-        {user.role !== 'CATERING' && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="p-4 bg-[#161B22] border border-[#30363D] rounded-2xl">
-              <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">Total Presupuestado</span>
-              <div className="text-xl font-display font-bold text-[#E6EDF3] mt-1">{formatCurrency(eventData.budgetTotal || 5200000)}</div>
-            </div>
-            <div className="p-4 bg-[#161B22] border border-[#30363D] rounded-2xl">
-              <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest">Total Pagado</span>
-              <div className="text-xl font-display font-bold text-[#3FB950] mt-1">{formatCurrency(22800000)}</div>
-            </div>
-          </div>
-        )}
 
-        {/* Tabs - No more sliders! */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+         <div className="flex flex-wrap gap-2 mb-8">
           {[
-            { id: 'ALERTS', label: 'Alertas', icon: AlertTriangle, color: '#F85149' },
-            { id: 'CLIENT', label: 'Datos Cliente', icon: UserIcon, color: '#C8A951' },
-            { id: 'OBS', label: 'Observaciones', icon: FileText, color: '#C8A951' },
+            { id: 'ALERTS', label: 'Alertas', icon: AlertTriangle },
+            { id: 'CLIENT', label: 'Datos Cliente', icon: UserIcon },
+            { id: 'OBS', label: 'Observaciones', icon: FileText },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(activeTab === tab.id ? null : tab.id)}
-              className={`flex items-center justify-center gap-3 px-6 py-3.5 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all border ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all border ${
                 activeTab === tab.id 
-                  ? 'bg-[#C8A951] border-[#C8A951] text-[#0D1117] shadow-lg shadow-[#C8A951]/10' 
+                  ? 'bg-[#30363D] border-[#8B949E] text-white shadow-sm' 
                   : 'bg-[#161B22] border-[#30363D] text-[#8B949E] hover:border-[#8B949E]/50'
               }`}
             >
-              <tab.icon size={16} /> {tab.label}
+              <tab.icon size={12} /> {tab.label}
             </button>
           ))}
         </div>
@@ -337,7 +372,6 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
         {/* Secciones */}
         <div className="space-y-10">
           {services.map((category, idx) => {
-            // CATERING ROLE: Only see CATERING section
             if (user.role === 'CATERING' && category.category !== 'CATERING') return null;
             
             const sectionPaid = category.items.reduce((sum, item: any) => sum + (item.amountPaid || 0), 0);
@@ -354,11 +388,6 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                         {formatCurrency(sectionPaid)} pagado
                       </span>
                     )}
-                    {user.role === 'CATERING' && category.category === 'CATERING' && (
-                      <span className="text-[#3FB950] text-sm font-bold">
-                        MI RUBRO — {formatCurrency(sectionPaid)} COBRADO
-                      </span>
-                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     {category.category === 'MOBILIARIO' && (
@@ -371,14 +400,11 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                         <Plus size={18} />
                       </button>
                     )}
-                    {category.category === 'EXTRAS' && (
-                      <button onClick={() => setIsAddExtraOpen(true)} className="p-2 bg-[#1F6FEB]/10 text-[#1F6FEB] border border-[#1F6FEB]/30 hover:bg-[#1F6FEB]/20 rounded-xl transition-all" title="Cargar extras">
-                        <Plus size={18} />
-                      </button>
-                    )}
                     <button 
                       onClick={() => {
                         setSelectedCategoryForPayment(category.category);
+                        setSelectedItemForPayment(null);
+                        setPaymentForm({...paymentForm, amount: '', qty: '1', method: 'EFECTIVO'});
                         setIsPaymentModalOpen(true);
                       }} 
                       className="px-4 py-2 bg-[#C8A951]/10 text-[#C8A951] border border-[#C8A951]/30 hover:bg-[#C8A951]/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
@@ -388,17 +414,20 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                   </div>
                 </div>
 
-                {/* Desktop Table View */}
                 <div className="hidden lg:block overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="bg-[#0D1117]/30 border-b border-[#30363D]/50">
                         <th className="px-6 py-3 text-[10px] font-black uppercase text-[#8B949E] tracking-widest">Cant.</th>
                         <th className="px-6 py-3 text-[10px] font-black uppercase text-[#8B949E] tracking-widest">Nombre</th>
-                        <th className="px-6 py-3 text-[10px] font-black uppercase text-[#8B949E] tracking-widest text-right">Precio ind.</th>
+                        {category.category !== 'ALQUILER DEL SALÓN' && (
+                          <th className="px-6 py-3 text-[10px] font-black uppercase text-[#8B949E] tracking-widest text-right">Precio ind.</th>
+                        )}
                         <th className="px-6 py-3 text-[10px] font-black uppercase text-[#8B949E] tracking-widest text-right">Total</th>
                         <th className="px-6 py-3 text-[10px] font-black uppercase text-[#8B949E] tracking-widest text-center">Estado</th>
-                        <th className="px-6 py-3 text-[10px] font-black uppercase text-[#8B949E] tracking-widest text-right">Acciones</th>
+                        <th className="px-6 py-3 text-[10px] font-black uppercase text-[#8B949E] tracking-widest text-right">
+                          {category.category === 'ALQUILER DEL SALÓN' ? 'Último Pago' : 'Acciones'}
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#30363D]/30 text-sm">
@@ -406,7 +435,6 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                         const isIncludedInPack = PACK_PREMIUM_ITEMS.includes(item.id || '') || ['Cabina DJ con pantallas en pista', 'Barras Láser Beam', 'Craquera', '12 Cabezales Aro LED', 'Pantallas Laterales'].includes(item.name);
                         const isIncludedFurniture = INCLUDED_FURNITURE_LIST.includes(item.name);
                         const isFreeItem = item.status === 'REGALO' || item.status === 'SIN CARGO';
-                        
                         const qtyVal = parseInt(item.qty) || 1;
                         const unitPrice = isFreeItem ? 0 : item.price;
                         const totalPrice = (item.status === 'incluido' || (isPackActive && isIncludedInPack) || isIncludedFurniture || isFreeItem) ? 0 : (item.unitPrice ? unitPrice * qtyVal : unitPrice);
@@ -414,11 +442,7 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                         return (
                           <tr key={iIdx} className="hover:bg-[#0D1117]/20 transition-colors">
                             <td className="px-6 py-4">
-                              {isIncludedFurniture ? (
-                                <input type="number" defaultValue={qtyVal} className="w-16 bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1 text-xs font-bold text-[#3FB950] outline-none focus:border-[#3FB950]" />
-                              ) : (
-                                <span className="font-bold text-[#8B949E]">{item.qty}</span>
-                              )}
+                              <span className="font-bold text-[#8B949E]">{item.qty}</span>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
@@ -427,34 +451,74 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                                 {isFreeItem && <span className="bg-[#1F6FEB]/20 text-[#1F6FEB] border border-[#1F6FEB]/40 text-[8px] font-black px-1.5 py-0.5 rounded uppercase">{item.status}</span>}
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-right text-[#8B949E]">
-                              {item.status === 'incluido' || (isPackActive && isIncludedInPack) || isIncludedFurniture || isFreeItem ? '—' : formatCurrency(unitPrice)}
-                            </td>
+                            {category.category !== 'ALQUILER DEL SALÓN' && (
+                              <td className="px-6 py-4 text-right text-[#8B949E]">
+                                {totalPrice === 0 ? '—' : formatCurrency(unitPrice)}
+                              </td>
+                            )}
                             <td className="px-6 py-4 text-right">
-                              <span className={`font-bold ${totalPrice === 0 ? 'text-[#8B949E]' : 'text-[#E6EDF3]'}`}>{totalPrice === 0 ? '—' : formatCurrency(totalPrice)}</span>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
-                                isIncludedFurniture || isFreeItem ? 'bg-[#3FB950]/20 text-[#3FB950]' :
-                                item.status === 'PENDIENTE' ? 'bg-[#30363D] text-[#8B949E]' : 
-                                'bg-[#3FB950]/20 text-[#3FB950]'
-                              }`}>
-                                {isIncludedFurniture ? 'INCLUIDO' : (isPackActive && isIncludedInPack) ? 'EN PACK' : item.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {item.status === 'PENDIENTE' && !isIncludedFurniture && !isFreeItem && (
-                                  <button title="Pagar" onClick={() => setIsPaymentModalOpen(true)} className="p-1.5 bg-[#C8A951]/10 text-[#C8A951] hover:bg-[#C8A951]/20 rounded transition-colors">
-                                    <DollarSign size={12} />
-                                  </button>
-                                )}
-                                {!item.isMandatory && (
-                                  <button title="Eliminar" className="p-1.5 bg-[#F85149]/10 text-[#F85149] hover:bg-[#F85149]/20 rounded transition-colors">
-                                    <Trash2 size={12} />
-                                  </button>
+                              <div className="flex flex-col items-end gap-1">
+                                <span className={`font-bold ${totalPrice === 0 ? 'text-[#8B949E]' : 'text-[#E6EDF3]'}`}>{totalPrice === 0 ? '—' : formatCurrency(totalPrice)}</span>
+                                {category.category === 'ALQUILER DEL SALÓN' && totalPrice > 0 && (
+                                  <div className="w-32 h-1.5 bg-[#0D1117] rounded-full overflow-hidden border border-[#30363D]">
+                                    <div 
+                                      className="h-full bg-[#3FB950] transition-all duration-500"
+                                      style={{ width: `${Math.min(100, (item.amountPaid / totalPrice) * 100)}%` }}
+                                    />
+                                  </div>
                                 )}
                               </div>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              {category.category === 'ALQUILER DEL SALÓN' ? (
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
+                                    item.amountPaid >= totalPrice ? 'bg-[#3FB950]/20 text-[#3FB950]' :
+                                    item.amountPaid > 0 ? 'bg-[#C8A951]/20 text-[#C8A951]' :
+                                    'bg-[#30363D] text-[#8B949E]'
+                                  }`}>
+                                    {item.amountPaid >= totalPrice ? 'PAGADO' : item.amountPaid > 0 ? 'A CUENTA' : 'PENDIENTE'}
+                                  </span>
+                                  {item.amountPaid > 0 && item.amountPaid < totalPrice && (
+                                    <span className="text-[10px] text-[#8B949E] font-medium">Restan {formatCurrency(totalPrice - item.amountPaid)}</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
+                                  isIncludedFurniture || isFreeItem ? 'bg-[#3FB950]/20 text-[#3FB950]' :
+                                  item.status === 'PENDIENTE' ? 'bg-[#30363D] text-[#8B949E]' : 
+                                  'bg-[#3FB950]/20 text-[#3FB950]'
+                                }`}>
+                                  {isIncludedFurniture ? 'INCLUIDO' : (isPackActive && isIncludedInPack) ? 'EN PACK' : item.status}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {category.category === 'ALQUILER DEL SALÓN' ? (
+                                <span className="text-xs font-medium text-[#8B949E]">{item.lastPaymentDate || '—'}</span>
+                              ) : (
+                                <div className="flex items-center justify-end gap-2">
+                                  {item.status === 'PENDIENTE' && !isIncludedFurniture && !isFreeItem && (
+                                    <button 
+                                      title="Pagar" 
+                                      onClick={() => { 
+                                        setSelectedCategoryForPayment(category.category); 
+                                        setSelectedItemForPayment(item);
+                                        setPaymentForm({...paymentForm, amount: item.price.toString(), qty: '1', method: 'EFECTIVO'});
+                                        setIsPaymentModalOpen(true); 
+                                      }} 
+                                      className="p-1.5 bg-[#C8A951]/10 text-[#C8A951] hover:bg-[#C8A951]/20 rounded transition-colors"
+                                    >
+                                      <DollarSign size={12} />
+                                    </button>
+                                  )}
+                                  {!item.isMandatory && (
+                                    <button title="Eliminar" className="p-1.5 bg-[#F85149]/10 text-[#F85149] hover:bg-[#F85149]/20 rounded transition-colors">
+                                      <Trash2 size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           </tr>
                         );
@@ -463,16 +527,9 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                   </table>
                 </div>
 
-                {/* Mobile Card View (No more side sliders!) */}
                 <div className="lg:hidden divide-y divide-[#30363D]/30">
                   {category.items.map((item: any, iIdx) => {
-                    const isIncludedInPack = PACK_PREMIUM_ITEMS.includes(item.id || '') || ['Cabina DJ con pantallas en pista', 'Barras Láser Beam', 'Craquera', '12 Cabezales Aro LED', 'Pantallas Laterales'].includes(item.name);
-                    const isIncludedFurniture = INCLUDED_FURNITURE_LIST.includes(item.name);
-                    const isFreeItem = item.status === 'REGALO' || item.status === 'SIN CARGO';
-                    const qtyVal = parseInt(item.qty) || 1;
-                    const unitPrice = isFreeItem ? 0 : item.price;
-                    const totalPrice = (item.status === 'incluido' || (isPackActive && isIncludedInPack) || isIncludedFurniture || isFreeItem) ? 0 : (item.unitPrice ? unitPrice * qtyVal : unitPrice);
-
+                    const totalPrice = (item.status === 'incluido' || INCLUDED_FURNITURE_LIST.includes(item.name)) ? 0 : item.price;
                     return (
                       <div key={iIdx} className="p-6 space-y-4">
                         <div className="flex justify-between items-start gap-3">
@@ -480,33 +537,16 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                             <h4 className="font-bold text-[#E6EDF3] text-sm leading-snug">{item.name}</h4>
                             <div className="flex flex-wrap gap-2 mt-2">
                               {item.isMandatory && <span className="bg-[#F85149] text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">OBLIGATORIO</span>}
-                              {isFreeItem && <span className="bg-[#1F6FEB]/20 text-[#1F6FEB] border border-[#1F6FEB]/40 text-[8px] font-black px-1.5 py-0.5 rounded uppercase">{item.status}</span>}
-                              <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
-                                isIncludedFurniture || isFreeItem ? 'bg-[#3FB950]/20 text-[#3FB950]' :
-                                item.status === 'PENDIENTE' ? 'bg-[#30363D] text-[#8B949E]' : 
-                                'bg-[#3FB950]/20 text-[#3FB950]'
-                              }`}>
-                                {isIncludedFurniture ? 'INCLUIDO' : (isPackActive && isIncludedInPack) ? 'EN PACK' : item.status}
-                              </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                             {!item.isMandatory && (
-                                <button className="p-2 bg-[#F85149]/10 text-[#F85149] rounded-lg"><Trash2 size={16} /></button>
-                             )}
-                             {item.status === 'PENDIENTE' && !isIncludedFurniture && !isFreeItem && (
-                               <button onClick={() => setIsPaymentModalOpen(true)} className="p-2 bg-[#C8A951]/10 text-[#C8A951] rounded-lg"><DollarSign size={16} /></button>
-                             )}
-                          </div>
                         </div>
-
                         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#30363D]/30">
                           <div>
                             <span className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Cantidad</span>
                             <span className="font-bold text-[#E6EDF3] text-sm">{item.qty}</span>
                           </div>
                           <div className="text-right">
-                            <span className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Costo Total</span>
+                            <span className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Total</span>
                             <span className={`font-black text-sm ${totalPrice === 0 ? 'text-[#8B949E]' : 'text-[#3FB950]'}`}>
                               {totalPrice === 0 ? 'Incluido' : formatCurrency(totalPrice)}
                             </span>
@@ -516,29 +556,26 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                     );
                   })}
                 </div>
-                {category.category === 'CATERING' && (
-                  <div className="bg-[#1C2128] px-6 py-3 border-t border-[#30363D] text-right">
-                    <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest mr-4">Total Catering Contratado:</span>
-                    <span className="text-sm font-black text-[#E6EDF3]">{formatCurrency(category.items.reduce((sum, item: any) => sum + (item.status === 'incluido' ? 0 : (item.unitPrice ? item.price * (parseInt(item.qty) || 0) : item.price)), 0))}</span>
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
 
-        {/* Gran Total */}
-        <div className="mt-12 bg-[#161B22] border-t-2 border-[#C8A951] p-8 rounded-b-2xl mb-20">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h4 className="text-[#C8A951] text-xs font-black uppercase mb-1">Total Acumulado Pagado</h4>
-              <p className="text-[#8B949E] text-[10px] italic">Suma de todos los registros de pago procesados por el salón.</p>
-            </div>
-            <div className="text-center md:text-right">
-              <div className="text-4xl font-display font-black text-[#E6EDF3] tracking-tighter">{formatCurrency(totalPaid)}</div>
-              <div className="flex items-center justify-center md:justify-end gap-1.5 mt-1 text-[#3FB950] font-bold text-[10px]">
-                <CheckCircle size={14} /> Actualizado al día
+        {/* Footer info */}
+        <div className="mt-12 bg-[#161B22] border-t-2 border-[#1F6FEB]/30 p-6 rounded-b-2xl mb-20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+             <h4 className="text-[#8B949E] text-[10px] font-black uppercase tracking-widest">Resumen de Cuenta</h4>
+             <p className="text-[#8B949E] text-[10px] italic">Información consolidada de cobros procesados.</p>
+          </div>
+          <div className="flex flex-col sm:items-end gap-1">
+            {(user.role === 'JEFE' || user.role === 'RECEPCIONISTA') && (
+              <div className="flex items-center gap-3">
+                <span className="text-[#8B949E] text-[10px] font-bold uppercase">Total Acumulado Pagado:</span>
+                <span className="text-xl font-display font-black text-[#E6EDF3] tracking-tighter">{formatCurrency(totalPaid)}</span>
               </div>
+            )}
+            <div className="flex items-center justify-center sm:justify-end gap-1.5 text-[#3FB950] font-bold text-[9px] uppercase tracking-tighter bg-[#3FB950]/5 px-2 py-0.5 rounded border border-[#3FB950]/20">
+              <CheckCircle size={10} /> Actualizado al día
             </div>
           </div>
         </div>
@@ -547,14 +584,139 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
       {/* Modales */}
       {isPaymentModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0D1117]/80 backdrop-blur-sm">
-          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-2xl p-8">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><DollarSign className="text-[#3FB950]" /> Registrar Pago</h2>
-            <div className="space-y-4">
-              <input type="number" placeholder="Monto ARS" className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none" />
-              <div className="flex gap-3 mt-8">
-                <button onClick={() => setIsPaymentModalOpen(false)} className="flex-1 px-4 py-3 rounded-xl border border-[#30363D] font-bold text-sm">Cancelar</button>
-                <button onClick={() => setIsPaymentModalOpen(false)} className="flex-1 bg-[#3FB950] text-white font-bold rounded-xl text-sm">Confirmar</button>
+          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-[#1C2128] border-b border-[#30363D] px-8 py-6 flex items-center justify-between">
+               <h2 className="text-xl font-bold flex items-center gap-2"><DollarSign className="text-[#3FB950]" /> Registrar Pago / Servicio</h2>
+               <button onClick={() => setIsPaymentModalOpen(false)} className="text-[#8B949E] hover:text-white transition-colors"><X size={24} /></button>
+            </div>
+            
+            <div className="p-8">
+              {!selectedItemForPayment ? (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-[#C8A951]/20 text-[#C8A951] px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">{selectedCategoryForPayment}</span>
+                    <h3 className="text-sm font-bold text-[#8B949E]">Seleccione el servicio a registrar:</h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {services.find(c => c.category === selectedCategoryForPayment)?.items.map((item: any, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setSelectedItemForPayment(item);
+                          setPaymentForm({
+                            ...paymentForm,
+                            amount: item.price.toString(),
+                            method: (item.status === 'REGALO' || item.status === 'SIN CARGO') ? 'REGALO' : 'EFECTIVO'
+                          });
+                        }}
+                        className="flex flex-col text-left p-4 bg-[#0D1117] border border-[#30363D] hover:border-[#C8A951] rounded-xl transition-all group"
+                      >
+                        <span className="font-bold text-[#E6EDF3] mb-1 group-hover:text-[#C8A951]">{item.name}</span>
+                        <span className="text-xs text-[#8B949E]">{formatCurrency(item.price)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  <div className="flex items-start justify-between bg-[#0D1117] p-5 rounded-2xl border border-[#30363D]">
+                    <div>
+                      <span className="text-[10px] font-black text-[#C8A951] uppercase tracking-[0.2em] mb-1 block">Servicio Seleccionado</span>
+                      <h3 className="text-lg font-bold text-[#E6EDF3] leading-tight">{selectedItemForPayment.name}</h3>
+                      <p className="text-xs text-[#8B949E] mt-1">Precio Unitario: {formatCurrency(selectedItemForPayment.price)}</p>
+                    </div>
+                    <button onClick={() => setSelectedItemForPayment(null)} className="text-[10px] font-black text-[#F85149] uppercase hover:underline">Cambiar</button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Cantidad</label>
+                      <input 
+                        type="number" 
+                        value={paymentForm.qty}
+                        onChange={(e) => setPaymentForm({...paymentForm, qty: e.target.value})}
+                        className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none focus:border-[#C8A951] font-bold" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Monto Total a registrar</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-3 text-[#8B949E] font-bold">$</span>
+                        <input 
+                          type="number" 
+                          disabled={paymentForm.method === 'REGALO'}
+                          value={paymentForm.method === 'REGALO' ? '0' : (parseFloat(paymentForm.amount) * (parseFloat(paymentForm.qty) || 1)).toString()}
+                          className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl pl-8 pr-4 py-3 outline-none font-bold text-[#3FB950] disabled:opacity-50" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1 block text-center">Forma de Pago / Estado</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { id: 'EFECTIVO', icon: DollarSign, color: '#3FB950' },
+                        { id: 'TRANSFERENCIA', icon: CreditCard, color: '#1F6FEB' },
+                        { id: 'PENDIENTE', icon: Clock, color: '#D29922' },
+                        { id: 'REGALO', icon: Plus, color: '#C8A951' }
+                      ].map((method) => (
+                        <button
+                          key={method.id}
+                          onClick={() => setPaymentForm({...paymentForm, method: method.id as any})}
+                          className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
+                            paymentForm.method === method.id 
+                              ? 'bg-[#E6EDF3] border-white text-black scale-105 shadow-xl' 
+                              : 'bg-[#0D1117] border-[#30363D] text-[#8B949E] hover:border-[#8B949E]/50'
+                          }`}
+                        >
+                          <method.icon size={20} />
+                          <span className="text-[10px] font-black uppercase tracking-tighter">{method.id}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {paymentForm.method === 'PENDIENTE' && (
+                    <div className="p-4 bg-[#D29922]/10 border border-[#D29922]/30 rounded-xl flex items-center gap-3 text-xs text-[#D29922] font-bold">
+                      <Clock size={16} />
+                      Este servicio se sumará al saldo deudor del cliente.
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 pt-4">
+                    <button onClick={() => setIsPaymentModalOpen(false)} className="flex-1 px-4 py-4 rounded-xl border border-[#30363D] font-bold text-sm hover:bg-[#30363D] transition-all">Cancelar</button>
+                    <button onClick={() => setIsPaymentModalOpen(false)} className="flex-[2] bg-[#3FB950] text-[#0D1117] font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-[#3FB950]/10 hover:brightness-110 active:scale-95 transition-all">
+                      Confirmar {paymentForm.method === 'PENDIENTE' ? 'Servicio' : 'Cobro'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isBalanceModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0D1117]/80 backdrop-blur-sm">
+          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <div className="p-2 bg-[#C8A951]/20 rounded-xl text-[#C8A951] tracking-tighter">⚖️</div>
+                Balance
+              </h2>
+              <button onClick={() => setIsBalanceModalOpen(false)} className="text-[#8B949E] hover:text-white"><X size={24} /></button>
+            </div>
+            <div className="space-y-6">
+              <div className="flex p-1 bg-[#0D1117] rounded-full border border-[#30363D]">
+                <button onClick={() => setBalanceForm({...balanceForm, type: 'FAVOR'})} className={`flex-1 py-2 rounded-full text-[10px] font-black ${balanceForm.type === 'FAVOR' ? 'bg-[#3FB950] text-black' : 'text-[#8B949E]'}`}>A FAVOR</button>
+                <button onClick={() => setBalanceForm({...balanceForm, type: 'CONTRA'})} className={`flex-1 py-2 rounded-full text-[10px] font-black ${balanceForm.type === 'CONTRA' ? 'bg-[#F85149] text-white' : 'text-[#8B949E]'}`}>EN CONTRA</button>
               </div>
+              <div className="space-y-4">
+                <input type="number" placeholder="Monto" className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none" />
+                <textarea placeholder="Detalle" className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none h-24" />
+              </div>
+              <button onClick={() => setIsBalanceModalOpen(false)} className="w-full py-4 bg-[#C8A951] text-black font-black rounded-xl text-xs uppercase tracking-widest">Guardar Balance</button>
             </div>
           </div>
         </div>
@@ -562,16 +724,16 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
 
       {isAddFurnitureOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0D1117]/80 backdrop-blur-sm">
-          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-2xl p-8">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><Plus className="text-[#1F6FEB]" /> Gestionar Mobiliario</h2>
+          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><Plus className="text-[#1F6FEB]" /> Mobiliario</h2>
             <div className="space-y-6">
               <div className="flex p-1 bg-[#0D1117] rounded-xl border border-[#30363D]">
                 <button onClick={() => setFurnitureForm({...furnitureForm, type: 'INCLUIDO'})} className={`flex-1 py-2 rounded-lg text-xs font-bold ${furnitureForm.type === 'INCLUIDO' ? 'bg-[#1F6FEB] text-white' : 'text-[#8B949E]'}`}>SALÓN</button>
                 <button onClick={() => setFurnitureForm({...furnitureForm, type: 'EXTRA'})} className={`flex-1 py-2 rounded-lg text-xs font-bold ${furnitureForm.type === 'EXTRA' ? 'bg-[#C8A951] text-[#0D1117]' : 'text-[#8B949E]'}`}>EXTRA</button>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 mt-4">
                 <button onClick={() => setIsAddFurnitureOpen(false)} className="flex-1 px-4 py-3 rounded-xl border border-[#30363D] font-bold text-sm">Cancelar</button>
-                <button onClick={() => setIsAddFurnitureOpen(false)} className="flex-1 bg-[#1F6FEB] text-white font-bold rounded-xl text-sm tracking-widest uppercase">Cargar</button>
+                <button onClick={() => setIsAddFurnitureOpen(false)} className="flex-1 bg-[#1F6FEB] text-white font-bold rounded-xl text-sm">Agregar</button>
               </div>
             </div>
           </div>
@@ -580,210 +742,94 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
 
       {isAddCateringOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0D1117]/80 backdrop-blur-sm">
-          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-2xl p-8 shadow-2xl">
+          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><Plus className="text-[#1F6FEB]" /> Agregar Catering</h2>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {['JOVENES', 'ADULTOS', 'NINOS', 'DESPUES', 'MOZOS'].map((t) => (
-                  <button 
-                    key={t}
-                    onClick={() => setCateringForm({...cateringForm, type: t as any})}
-                    className={`py-2 rounded-lg text-[9px] font-black tracking-widest transition-all ${cateringForm.type === t ? 'bg-[#1F6FEB] text-white' : 'bg-[#0D1117] text-[#8B949E] border border-[#30363D]'}`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-4">
-                {cateringForm.type === 'ADULTOS' && (
-                  <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
-                    <select 
-                      value={cateringForm.menuType}
-                      onChange={(e) => setCateringForm({...cateringForm, menuType: e.target.value})}
-                      className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none text-xs text-[#E6EDF3] font-bold"
-                    >
-                      <option value="M1">Menú 1 Adultos</option>
-                      <option value="M2_POLLO">Menú 2 Gourmet — Pollo</option>
-                      <option value="M2_LOMO">Menú 2 Gourmet — Lomo</option>
-                      <option value="ESPECIAL">Menú Especial</option>
-                    </select>
-                    <label className="flex items-center gap-3 p-3 bg-[#0D1117] rounded-xl border border-[#30363D] cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={cateringForm.buffet}
-                        onChange={(e) => setCateringForm({...cateringForm, buffet: e.target.checked})}
-                        className="w-4 h-4 rounded border-[#30363D] bg-[#161B22] text-[#1F6FEB]"
-                      />
-                      <span className="text-xs font-bold text-[#8B949E]">Incluye Buffet de Postre</span>
-                    </label>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Cantidad</label>
-                    <input type="number" placeholder="Cantidad" className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none focus:border-[#C8A951]" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Precio Unit.</label>
-                    <input type="number" placeholder="ARS" className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none focus:border-[#C8A951]" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-4">
+               <div className="flex gap-3 mt-4">
                 <button onClick={() => setIsAddCateringOpen(false)} className="flex-1 px-4 py-3 rounded-xl border border-[#30363D] font-bold text-sm">Cancelar</button>
-                <button onClick={() => setIsAddCateringOpen(false)} className="flex-1 bg-[#1F6FEB] text-white font-bold rounded-xl text-xs uppercase tracking-widest">Añadir</button>
+                <button onClick={() => setIsAddCateringOpen(false)} className="flex-1 bg-[#1F6FEB] text-white font-bold rounded-xl text-sm">Agregar</button>
               </div>
             </div>
           </div>
         </div>
       )}
-
-      {isAddExtraOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0D1117]/80 backdrop-blur-sm">
-          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-2xl p-8 shadow-2xl">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-[#C8A951]"><Plus /> Agregar Servicio Extra</h2>
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Nombre del extra</label>
-                <input 
-                  type="text" 
-                  value={extraForm.name}
-                  onChange={(e) => setExtraForm({...extraForm, name: e.target.value})}
-                  placeholder="Ej: Humo bajo, Pista LED" 
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none focus:border-[#C8A951]" 
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Cantidad</label>
-                  <input 
-                    type="number" 
-                    value={extraForm.qty}
-                    onChange={(e) => setExtraForm({...extraForm, qty: e.target.value})}
-                    placeholder="1" 
-                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none focus:border-[#C8A951]" 
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Precio Unit.</label>
-                  <input 
-                    type="number" 
-                    value={extraForm.price}
-                    onChange={(e) => setExtraForm({...extraForm, price: e.target.value})}
-                    placeholder="ARS" 
-                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none focus:border-[#C8A951]" 
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Tipo de Cargo</label>
-                <select 
-                  value={extraForm.status}
-                  onChange={(e) => setExtraForm({...extraForm, status: e.target.value})}
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none font-bold text-xs"
-                >
-                  <option value="PENDIENTE">CON CARGO (Pendiente)</option>
-                  <option value="REGALO">REGALO ($0)</option>
-                  <option value="SIN CARGO">SIN CARGO ($0)</option>
-                </select>
-              </div>
-
-              <div className="pt-4 flex justify-between items-center bg-[#0D1117] p-4 rounded-xl border border-[#30363D]">
-                <span className="text-xs font-bold text-[#8B949E]">TOTAL CALCULADO:</span>
-                <span className="text-lg font-black text-[#E6EDF3]">
-                  {extraForm.status === 'PENDIENTE' 
-                    ? formatCurrency((parseInt(extraForm.qty) || 0) * (parseInt(extraForm.price) || 0))
-                    : '$ 0'}
-                </span>
-              </div>
-
-              <div className="flex gap-3 mt-4">
-                <button onClick={() => setIsAddExtraOpen(false)} className="flex-1 px-4 py-3 rounded-xl border border-[#30363D] font-bold text-sm">Cancelar</button>
-                <button onClick={() => setIsAddExtraOpen(false)} className="flex-1 bg-[#C8A951] text-[#0D1117] font-bold rounded-xl text-xs uppercase tracking-widest">Agregar extra</button>
-              </div>
+      {/* Printable Sheet - Only visible on print */}
+      <div className="print-visible print-container hidden text-black bg-white p-8 font-sans" style={{ color: 'black' }}>
+        <div className="flex justify-between items-start border-b-2 border-black pb-6 mb-8">
+          <div>
+            <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">{eventData.title}</h1>
+            <div className="flex gap-6 text-sm font-bold text-gray-600">
+              <span className="flex items-center gap-2"><Calendar size={14} /> {eventData.date}</span>
+              <span className="flex items-center gap-2"><Clock size={14} /> {eventData.time}</span>
+              <span className="flex items-center gap-2"><MapPin size={14} /> {eventData.salon}</span>
             </div>
           </div>
+          <div className="text-right">
+             <span className="border-2 border-black px-3 py-1 font-black text-xs uppercase">{eventData.category}</span>
+          </div>
         </div>
-      )}
-      {isBalanceModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0D1117]/80 backdrop-blur-sm">
-          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <div className="p-2 bg-[#C8A951]/20 rounded-xl text-[#C8A951] tracking-tighter">⚖️</div>
-                Estado de Balance
-              </h2>
-              <button onClick={() => setIsBalanceModalOpen(false)} className="text-[#8B949E] hover:text-white"><X size={24} /></button>
-            </div>
 
-            <div className="space-y-6">
-              <div className="flex p-1 bg-[#0D1117] rounded-2xl border border-[#30363D]">
-                <button 
-                  onClick={() => setBalanceForm({...balanceForm, type: 'FAVOR'})}
-                  className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all ${balanceForm.type === 'FAVOR' ? 'bg-[#3FB950] text-[#0D1117]' : 'text-[#8B949E]'}`}
-                >
-                  A FAVOR DEL SALÓN
-                </button>
-                <button 
-                  onClick={() => setBalanceForm({...balanceForm, type: 'CONTRA'})}
-                  className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all ${balanceForm.type === 'CONTRA' ? 'bg-[#F85149] text-white' : 'text-[#8B949E]'}`}
-                >
-                  EN CONTRA
-                </button>
-              </div>
+        <div className="space-y-6">
+          <h2 className="text-xs font-black uppercase tracking-[0.3em] border-b border-black/10 pb-2 mb-4">Detalle de Servicios</h2>
+          
+          {["ALQUILER DEL SALÓN", "TÉCNICA", "IVA SALÓN", "GRUPO ELECTRÓGENO", "MOBILIARIO", "CATERING", "EXTRAS"].map((catName) => {
+            const cat = services.find(s => s.category === catName);
+            const isMandatory = ["ALQUILER DEL SALÓN", "TÉCNICA", "IVA SALÓN", "GRUPO ELECTRÓGENO"].includes(catName);
+            
+            if (!isMandatory && (!cat || cat.items.length === 0)) return null;
+            if (catName === 'EXTRAS' && (!cat || cat.items.length === 0)) return null;
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Monto</label>
-                  <input 
-                    type="number" 
-                    value={balanceForm.amount}
-                    onChange={(e) => setBalanceForm({...balanceForm, amount: e.target.value})}
-                    placeholder="0.00" 
-                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none focus:border-[#C8A951] font-display font-bold text-lg" 
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Moneda</label>
-                  <div className="flex h-[52px] p-1 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                    <button onClick={() => setBalanceForm({...balanceForm, currency: 'ARS'})} className={`flex-1 rounded-lg text-xs font-black ${balanceForm.currency === 'ARS' ? 'bg-[#30363D] text-[#E6EDF3]' : 'text-[#8B949E]'}`}>ARS</button>
-                    <button onClick={() => setBalanceForm({...balanceForm, currency: 'USD'})} className={`flex-1 rounded-lg text-xs font-black ${balanceForm.currency === 'USD' ? 'bg-[#3FB950]/20 text-[#3FB950]' : 'text-[#8B949E]'}`}>USD</button>
+            const totalAmount = cat?.items.reduce((sum, item: any) => {
+              const isIncluded = item.status === 'incluido' || (catName === 'TÉCNICA' && item.name !== 'Música, Luces y Pantallas (base)' && item.name !== 'Pack Luces Premium' && cat.items.some(i => i.name === 'Pack Luces Premium'));
+              if (isIncluded) return sum;
+              return sum + (item.price * (parseInt(item.qty) || 1));
+            }, 0) || 0;
+
+            const currentCatPaid = cat?.items.reduce((sum, item: any) => sum + (item.amountPaid || 0), 0) || 0;
+            const remains = totalAmount - currentCatPaid;
+
+            return (
+              <div key={catName} className="break-inside-avoid">
+                <div className="flex justify-between items-end border-b border-gray-100 pb-2">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-black uppercase">{catName} {isMandatory && <span className="text-[9px] font-normal lowercase text-gray-400 opacity-60 ml-1">(obligatorio)</span>}</span>
+                    {catName === 'TÉCNICA' && cat?.items.some(i => i.name === 'Pack Luces Premium') && (
+                      <div className="mt-2 pl-4 grid grid-cols-2 gap-x-8 gap-y-0.5 opacity-60">
+                        {['Craquera', 'Barras Láser', 'Cabezales Aro LED', 'Pantallas Laterales', 'Cabina DJ'].map(i => (
+                          <span key={i} className="text-[10px] font-medium leading-tight">· {i}</span>
+                        ))}
+                      </div>
+                    )}
+                    {catName === 'MOBILIARIO' && cat?.items.filter(i => i.price > 0).map(i => (
+                      <span key={i.name} className="text-[10px] font-medium opacity-60 ml-4 leading-tight">· {i.name} ({i.qty})</span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-10 text-right">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Total</span>
+                      <span className="text-sm font-black">{formatCurrency(totalAmount)}</span>
+                    </div>
+                    <div className="flex flex-col w-20">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Estado</span>
+                      <span className="text-[10px] font-black uppercase">{remains <= 0 ? 'PAGADO' : remains < totalAmount ? 'A CUENTA' : 'PENDIENTE'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
+            );
+          })}
+        </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Detalle del movimiento</label>
-                <textarea 
-                  value={balanceForm.detail}
-                  onChange={(e) => setBalanceForm({...balanceForm, detail: e.target.value})}
-                  placeholder="Ej: Ajuste por servicio no utilizado, Pago extra..." 
-                  className="w-full h-24 bg-[#0D1117] border border-[#30363D] rounded-xl p-4 outline-none focus:border-[#C8A951] text-sm resize-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest ml-1">Fecha del movimiento</label>
-                <input 
-                  type="date" 
-                  value={balanceForm.date}
-                  onChange={(e) => setBalanceForm({...balanceForm, date: e.target.value})}
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 outline-none focus:border-[#C8A951] font-bold text-sm" 
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button onClick={() => setIsBalanceModalOpen(false)} className="flex-1 px-4 py-3 rounded-xl border border-[#30363D] font-bold text-sm">Cancelar</button>
-                <button onClick={() => setIsBalanceModalOpen(false)} className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${balanceForm.type === 'FAVOR' ? 'bg-[#3FB950] text-[#0D1117]' : 'bg-[#F85149] text-white'}`}>Guardar</button>
-              </div>
-            </div>
+        <div className="mt-20 pt-10 border-t-2 border-black flex justify-between items-end">
+          <div className="max-w-xs italic text-[11px] font-medium leading-relaxed">
+            "Los ítems sin pagar se abonarán al valor del momento del pago."
+          </div>
+          <div className="text-right bg-gray-50 p-4 rounded-lg">
+             <span className="text-[10px] font-black uppercase text-gray-400 block mb-1">Total abonado a la fecha</span>
+             <span className="text-2xl font-black">{formatCurrency(totalPaid)}</span>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

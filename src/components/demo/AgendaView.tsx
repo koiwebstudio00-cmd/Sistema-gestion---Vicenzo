@@ -41,29 +41,37 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
     });
   };
 
-  const getEventColor = (category: EventCategory) => {
+  const getEventStyles = (category?: EventCategory) => {
     switch (category) {
-      case 'QUINCEANERA': return 'bg-[#E91E8C]/20 border-l-2 border-[#E91E8C] text-[#E6EDF3]';
-      case 'CASAMIENTO': return 'bg-[#1F6FEB]/20 border-l-2 border-[#1F6FEB] text-[#E6EDF3]';
-      case 'CUMPLEANOS': return 'bg-[#C8A951]/20 border-l-2 border-[#C8A951] text-[#E6EDF3]';
-      case 'CORPORATIVO': return 'bg-[#6B7280]/20 border-l-2 border-[#6B7280] text-[#E6EDF3]';
-      case 'EGRESADO': return 'bg-[#8B5CF6]/20 border-l-2 border-[#8B5CF6] text-[#E6EDF3]';
-      case 'ANIVERSARIO': return 'bg-[#00D1FF]/20 border-l-2 border-[#00D1FF] text-[#E6EDF3]';
-      case 'OTRO': return 'bg-[#22C55E]/20 border-l-2 border-[#22C55E] text-[#E6EDF3]';
-      default: return 'bg-[#8B949E]/20 border-l-2 border-[#8B949E] text-[#E6EDF3]';
+      case 'QUINCEANERA':
+        return { bg: '#FFB3D9', border: '#E91E8C', text: '#E91E8C' };
+      case 'CASAMIENTO':
+        return { bg: '#9DB8E8', border: '#1A3A7A', text: '#1A3A7A' };
+      case 'CUMPLEANOS':
+        return { bg: '#FFF3A0', border: '#E8920A', text: '#E8920A' };
+      case 'CORPORATIVO':
+        return { bg: '#E0E0E0', border: '#606060', text: '#606060' };
+      case 'EGRESADO':
+        return { bg: '#9C27B0', border: '#9C27B0', text: '#4A0060' };
+      case 'OTRO':
+        return { bg: '#B8F0A0', border: '#3CB521', text: '#2E9018' };
+      case 'ANIVERSARIO':
+        return { bg: 'transparent', border: '#1A1A1A', text: '#1A1A1A' }; // Mapped to RESERVADO style
+      default:
+        return { bg: 'transparent', border: '#1A1A1A', text: '#1A1A1A' };
     }
   };
 
-  const getCategoryColorHex = (cat?: EventCategory) => {
-    switch (cat) {
-      case 'QUINCEANERA': return '#E91E8C';
-      case 'CASAMIENTO': return '#1F6FEB';
-      case 'CUMPLEANOS': return '#C8A951';
-      case 'CORPORATIVO': return '#6B7280';
-      case 'EGRESADO': return '#8B5CF6';
-      case 'ANIVERSARIO': return '#00D1FF';
-      case 'OTRO': return '#22C55E';
-      default: return '#8B949E';
+  const getEventColor = (category: EventCategory) => {
+    switch (category) {
+      case 'QUINCEANERA': return 'bg-[#FFB3D9] border-l-4 border-[#E91E8C] text-[#E91E8C]';
+      case 'CASAMIENTO': return 'bg-[#9DB8E8] border-l-4 border-[#1A3A7A] text-[#1A3A7A]';
+      case 'CUMPLEANOS': return 'bg-[#FFF3A0] border-l-4 border-[#E8920A] text-[#E8920A]';
+      case 'CORPORATIVO': return 'bg-[#E0E0E0] border-l-4 border-[#606060] text-[#606060]';
+      case 'EGRESADO': return 'bg-[#9C27B0] border-l-4 border-[#9C27B0] text-[#4A0060]';
+      case 'ANIVERSARIO': return 'bg-[#1A1A1A] border-l-4 border-[#1A1A1A] text-white';
+      case 'OTRO': return 'bg-[#B8F0A0] border-l-4 border-[#3CB521] text-[#2E9018]';
+      default: return 'bg-[#30363D] border-l-4 border-[#8B949E] text-[#E6EDF3]';
     }
   };
 
@@ -131,12 +139,13 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
                 className="w-full sm:w-auto bg-[#161B22] border border-[#30363D] text-[#E6EDF3] text-sm rounded-lg pl-3 pr-8 py-2 appearance-none focus:outline-none focus:border-[#C8A951]"
               >
                 <option value="ALL">Todos los tipos</option>
-                <option value="CASAMIENTO">Casamiento (Azul)</option>
-                <option value="QUINCEANERA">15 Años (Rosa)</option>
-                <option value="CUMPLEANOS">Cumpleaños (Dorado)</option>
-                <option value="CORPORATIVO">Corporativo (Gris)</option>
-                <option value="EGRESADO">Egresado (Violeta)</option>
-                <option value="OTRO">Otro (Verde)</option>
+                <option value="CASAMIENTO">Casamiento</option>
+                <option value="QUINCEANERA">15 Años</option>
+                <option value="CUMPLEANOS">Cumpleaños</option>
+                <option value="CORPORATIVO">Corporativo</option>
+                <option value="EGRESADO">Egresado</option>
+                <option value="OTRO">Otro</option>
+                <option value="ANIVERSARIO">Reservado</option>
               </select>
               <ChevronDown className="absolute right-3 top-2.5 h-3.5 w-3.5 text-[#8B949E] pointer-events-none" />
             </div>
@@ -228,15 +237,22 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
 
                       return (
                         <div key={day} className="flex justify-center items-center h-8 relative">
-                          <div
-                            className={`w-7 h-7 rounded-[8px] flex items-center justify-center text-[11px] transition-all
-                              ${hasEvents ? 'font-bold text-white shadow-md z-10' : 'text-[#8B949E] hover:bg-[#30363D]/30'}`}
-                            style={hasEvents ? { 
-                              backgroundColor: event?.status === 'CONFIRMADO' ? '#22C55E' : `${getCategoryColorHex(event?.category)}D9` 
-                            } : {}}
-                          >
-                            {day}
-                          </div>
+                          {hasEvents ? (
+                            <div
+                              className="w-8 h-8 rounded-[12px] flex items-center justify-center text-sm font-bold transition-all shadow-sm"
+                              style={{
+                                backgroundColor: getEventStyles(event?.category).bg,
+                                border: `2px solid ${getEventStyles(event?.category).border}`,
+                                color: getEventStyles(event?.category).text
+                              }}
+                            >
+                              {day}
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 flex items-center justify-center text-[11px] text-[#8B949E] hover:bg-[#30363D]/30 rounded-lg transition-all">
+                              {day}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -272,28 +288,32 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
           </div>
 
           {/* Desktop View (Grid) */}
-          <div className="hidden lg:flex flex-1 bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden flex-col">
-            <div className="overflow-x-auto">
-              <div className="min-w-[800px]">
-                <div className="grid grid-cols-7 border-b border-[#30363D] bg-[#0D1117]">
+          <div className="hidden lg:flex flex-1 bg-[#161B22] border-t border-l border-[#30363D] rounded-xl overflow-hidden flex-col shadow-2xl">
+            <div className="flex-1 overflow-x-auto">
+              <div className="min-w-[800px] h-full flex flex-col">
+                <div className="grid grid-cols-7 border-b border-[#30363D] bg-[#0D1117] sticky top-0 z-20">
                   {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => (
-                    <div key={day} className="py-3 text-center text-sm font-medium text-[#8B949E] uppercase tracking-wider">
+                    <div key={day} className="py-3 text-center text-[10px] font-black uppercase text-[#8B949E] tracking-[0.2em] border-r border-[#30363D]">
                       {day}
                     </div>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 auto-rows-fr h-[calc(100vh-280px)] min-h-[500px]">
+                <div className="grid grid-cols-7 auto-rows-fr flex-1">
                   {blanks.map((_, i) => (
-                    <div key={`blank-${i}`} className="border-b border-r border-[#30363D] bg-[#0D1117]/30 min-h-[100px]" />
+                    <div key={`blank-${i}`} className="border-b border-r border-[#30363D] bg-[#0D1117]/30" />
                   ))}
                   {days.map(day => {
                     const dayEvents = getEventsForDay(day);
                     return (
-                      <div key={day} className="border-b border-r border-[#30363D] p-2 min-h-[100px] relative group hover:bg-[#30363D]/10 transition-colors">
+                      <div key={day} className="border-b border-r border-[#30363D] p-2 relative group hover:bg-[#30363D]/10 transition-colors flex flex-col min-h-[110px]">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all mb-2
-                            ${dayEvents.length > 0 ? 'font-bold text-white shadow-sm' : 'text-[#8B949E]'}`}
-                          style={dayEvents.length > 0 ? { backgroundColor: getCategoryColorHex(dayEvents[0].category) } : {}}
+                          className={`w-9 h-9 rounded-[12px] flex items-center justify-center text-sm transition-all mb-2
+                            ${dayEvents.length > 0 ? 'font-bold shadow-sm' : 'text-[#8B949E]'}`}
+                          style={dayEvents.length > 0 ? { 
+                            backgroundColor: getEventStyles(dayEvents[0].category).bg,
+                            border: `2px solid ${getEventStyles(dayEvents[0].category).border}`,
+                            color: getEventStyles(dayEvents[0].category).text
+                          } : {}}
                         >
                           {day}
                         </div>
@@ -302,17 +322,30 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
                             <div
                               key={event.id}
                               onClick={(e) => { e.stopPropagation(); onSelectEvent(event.id); }}
-                              className={`w-full text-[11px] p-2 rounded-lg mb-1 cursor-pointer hover:brightness-110 transition-all border border-white/5 shadow-sm group ${getEventColor(event.category)}`}
+                              className={`w-full p-2.5 rounded-lg mb-1 cursor-pointer hover:brightness-110 transition-all border border-white/5 shadow-md group relative z-10`}
+                              style={{
+                                backgroundColor: getEventStyles(event.category).bg,
+                                borderLeft: `4px solid ${getEventStyles(event.category).border}`,
+                              }}
                             >
-                              <div className="flex justify-between items-start gap-1">
-                                <div className="font-bold truncate leading-tight flex-1 text-[#E6EDF3] group-hover:text-white">
-                                  {event.responsable}
-                                </div>
-                                <span className={`${event.balance > 0 ? 'text-[#3FB950]' : 'text-[#8B949E]'} font-bold text-[12px] leading-none`}>$</span>
+                              <div 
+                                className="text-[13px] font-bold truncate leading-tight mb-2"
+                                style={{ color: getEventStyles(event.category).text }}
+                              >
+                                {event.title}
                               </div>
-                              <div className="mt-1.5 flex items-center justify-between">
-                                <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase tracking-tighter bg-white/10 text-white/90 border border-white/5`}>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <span 
+                                  className="px-1.5 py-0.5 rounded-[4px] text-[7.5px] font-black uppercase tracking-tighter bg-white/10 border border-white/5"
+                                  style={{ color: getEventStyles(event.category).text }}
+                                >
                                   {event.status === 'POR_SENAR' ? 'POR SEÑAR' : event.status === 'SENA_EN_PROCESO' ? 'SEÑA EN PROC.' : event.status}
+                                </span>
+                                <span 
+                                  className="font-bold text-[10px] leading-none"
+                                  style={{ color: event.balance > 0 ? '#F85149' : event.balance < 0 ? '#3FB950' : '#8B949E' }}
+                                >
+                                  $
                                 </span>
                               </div>
                             </div>
@@ -323,7 +356,7 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
                   })}
                   {/* Fill remaining cells if needed */}
                   {Array.from({ length: 42 - (days.length + blanks.length) }).map((_, i) => (
-                    <div key={`end-blank-${i}`} className="border-b border-r border-[#30363D] bg-[#0D1117]/30 min-h-[100px]" />
+                    <div key={`end-blank-${i}`} className="border-b border-r border-[#30363D] bg-[#0D1117]/30" />
                   ))}
                 </div>
               </div>
@@ -355,17 +388,21 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
                   const isSelected = selectedDate === day;
                   return (
                     <div key={day} className="flex justify-center">
-                      <button
-                        onClick={() => setSelectedDate(day)}
-                        className={`
-                          w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all relative
-                          ${isSelected ? 'ring-2 ring-offset-2 ring-offset-[#0D1117] ring-[#C8A951] z-10' : ''}
-                          ${hasEvents ? 'font-bold text-white shadow-sm' : 'text-[#E6EDF3]'}
-                        `}
-                        style={hasEvents ? { backgroundColor: getCategoryColorHex(getEventsForDay(day)[0].category) } : {}}
-                      >
-                        {day}
-                      </button>
+                        <button
+                          onClick={() => setSelectedDate(day)}
+                          className={`
+                            w-9 h-9 rounded-[12px] flex items-center justify-center text-sm transition-all relative
+                            ${isSelected ? 'ring-2 ring-offset-2 ring-offset-[#0D1117] ring-[#C8A951] z-10' : ''}
+                            ${hasEvents ? 'font-bold shadow-sm' : 'text-[#E6EDF3]'}
+                          `}
+                          style={hasEvents ? {
+                            backgroundColor: getEventStyles(getEventsForDay(day)[0].category).bg,
+                            border: `2px solid ${getEventStyles(getEventsForDay(day)[0].category).border}`,
+                            color: getEventStyles(getEventsForDay(day)[0].category).text
+                          } : {}}
+                        >
+                          {day}
+                        </button>
                     </div>
                   );
                 })}
@@ -387,13 +424,14 @@ export const AgendaView = ({ onSelectEvent }: { onSelectEvent: (id: string) => v
                       onClick={() => onSelectEvent(event.id)}
                       className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 flex items-center gap-4 group hover:border-[#8B949E] transition-colors cursor-pointer"
                     >
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${event.category === 'CASAMIENTO' ? 'bg-[#1F6FEB]/20 text-[#1F6FEB]' :
-                        event.category === 'QUINCEANERA' ? 'bg-[#E91E8C]/20 text-[#E91E8C]' :
-                          event.category === 'CUMPLEANOS' ? 'bg-[#C8A951]/20 text-[#C8A951]' :
-                            event.category === 'CORPORATIVO' ? 'bg-[#6B7280]/20 text-[#6B7280]' :
-                              event.category === 'EGRESADO' ? 'bg-[#8B5CF6]/20 text-[#8B5CF6]' :
-                                'bg-[#22C55E]/20 text-[#22C55E]'
-                        }`}>
+                      <div 
+                        className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 border"
+                        style={{
+                          backgroundColor: getEventStyles(event.category).bg,
+                          borderColor: getEventStyles(event.category).border,
+                          color: getEventStyles(event.category).text
+                        }}
+                      >
                         {event.category === 'CASAMIENTO' ? '💍' : event.category === 'QUINCEANERA' ? '👑' : event.category === 'EGRESADO' ? '🎓' : '🎉'}
                       </div>
 

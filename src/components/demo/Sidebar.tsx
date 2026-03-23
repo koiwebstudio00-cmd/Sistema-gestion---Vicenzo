@@ -11,6 +11,7 @@ import {
   Settings,
   X,
   Users,
+  Wallet,
 } from 'lucide-react';
 import type { User } from '../../features/demo/demoShared';
 
@@ -30,10 +31,11 @@ export const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onCl
     { id: 'AGENDA', label: 'Agenda', icon: Calendar },
     { id: 'EVENTOS', label: 'Eventos', icon: FileText },
     { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
-    { id: 'PAGOS', label: 'Pagos', icon: CreditCard, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
+    { id: 'PAGOS', label: 'Historial de Cobros', icon: CreditCard, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING'] },
     { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO'] },
     { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO'] },
     { id: 'GASTOS', label: 'Gastos Semanales', icon: DollarSign, restricted: ['RECEPCIONISTA', 'PRODUCCION', 'CATERING', 'INVITADO'] },
+    { id: 'COBROS', label: 'Mis Cobros', icon: Wallet, roleSpecific: ['GUILLERMINA', 'JEFE'] },
     { id: 'GUESTS', label: 'Lista de Invitados', icon: Users, roleSpecific: ['INVITADO'] },
     { id: 'PLANILLA', label: 'Planilla Operativa', icon: FileText, roleSpecific: ['INVITADO'] },
   ];
@@ -44,6 +46,9 @@ export const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onCl
     }
     if (user.role === 'CATERING') {
       return ['AGENDA', 'EVENTOS', 'LIQUIDACIONES'].includes(item.id);
+    }
+    if (user.role === 'GUILLERMINA') {
+      return ['COBROS'].includes(item.id);
     }
     // Filter out roleSpecific items for general roles unless specified
     if (item.roleSpecific && !item.roleSpecific.includes(user.role)) return false;
@@ -106,7 +111,7 @@ export const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onCl
           })}
         </nav>
 
-        {user.role !== 'INVITADO' && (
+        {user.role !== 'INVITADO' && user.role !== 'GUILLERMINA' && (
           <div className="px-3 py-4 space-y-1">
             <button
               onClick={() => {

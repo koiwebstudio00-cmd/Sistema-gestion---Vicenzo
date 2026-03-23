@@ -18,7 +18,8 @@ export const DEFAULT_VIEW_BY_ROLE: Record<UserRole, string> = {
   TIO_FRANCO: 'EVENTOS',
   CATERING: 'EVENTOS',
   INVITADO: 'GUESTS',
-  CLIENTE: 'EVENTOS'
+  CLIENTE: 'EVENTOS',
+  GUILLERMINA: 'COBROS'
 };
 
 export const ROLE_HOME_BY_ROLE: Record<UserRole, AppPath> = {
@@ -28,7 +29,8 @@ export const ROLE_HOME_BY_ROLE: Record<UserRole, AppPath> = {
   TIO_FRANCO: APP_ROUTES.tioFranco,
   CATERING: APP_ROUTES.catering,
   INVITADO: APP_ROUTES.login, 
-  CLIENTE: APP_ROUTES.login
+  CLIENTE: APP_ROUTES.login,
+  GUILLERMINA: APP_ROUTES.dashboard
 };
 
 export const normalizePath = (pathname: string): AppPath => {

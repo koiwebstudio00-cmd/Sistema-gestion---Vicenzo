@@ -1,4 +1,4 @@
-export type UserRole = 'JEFE' | 'RECEPCIONISTA' | 'PRODUCCION' | 'TIO_FRANCO' | 'CATERING' | 'CLIENTE' | 'INVITADO';
+export type UserRole = 'JEFE' | 'RECEPCIONISTA' | 'PRODUCCION' | 'TIO_FRANCO' | 'CATERING' | 'GUILLERMINA' | 'CLIENTE' | 'INVITADO';
 
 export interface User {
   id: string;
@@ -104,6 +104,7 @@ export interface ServiceItem {
   currency: 'ARS' | 'USD';
   vigencia: string;
   category: string;
+  authorityId?: string; // ID of the user who owns this service (e.g. Guillermina)
 }
 
 export const USERS: User[] = [
@@ -111,9 +112,10 @@ export const USERS: User[] = [
   { id: '2', name: 'Julia', role: 'RECEPCIONISTA' },
   { id: '3', name: 'Hernán', role: 'PRODUCCION' },
   { id: '4', name: 'Tío Franco', role: 'TIO_FRANCO' },
+  { id: '5', name: 'Guillermina', role: 'GUILLERMINA', email: 'guillermina@vicenzo.com' },
+  { id: '6', name: 'Orlando', role: 'JEFE' },
   { id: 'u3', name: 'Catering (Eugenio)', role: 'CATERING', email: 'eugenio@catering.com' },
   { id: 'u4', name: 'Usuario Invitado', role: 'INVITADO', email: 'invitado@vicenzo.com' },
-  { id: '6', name: 'Orlando', role: 'JEFE' },
 ];
 
 export const EVENTS_DATA: Event[] = [
@@ -157,7 +159,7 @@ export const EVENTS_DATA: Event[] = [
 export const CATALOG_DATA: ServiceItem[] = [
   { id: 't1', category: 'TÉCNICA & SONIDO', name: 'Alquiler Salón / Seña', priceArs: 2000000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 't2', category: 'TÉCNICA & SONIDO', name: 'Música, Luces y Pantallas / Seña', priceArs: 1150000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
-  { id: 't3', category: 'TÉCNICA & SONIDO', name: 'Cabina DJ con pantallas en pista', priceArs: 130000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
+  { id: 't3', category: 'TÉCNICA & SONIDO', name: 'Cabina DJ con pantallas en pista', priceArs: 130000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25', authorityId: '5' },
   { id: 't4', category: 'TÉCNICA & SONIDO', name: 'Barras Láser Beam', priceArs: 215000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 't5', category: 'TÉCNICA & SONIDO', name: 'Craquera', priceArs: 120000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 't6', category: 'TÉCNICA & SONIDO', name: '12 Cabezales Aro LED', priceArs: 210000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
@@ -180,8 +182,8 @@ export const CATALOG_DATA: ServiceItem[] = [
   { id: 'a4', category: 'MENÚ ADULTOS', name: 'Buffet 1 — 3 elementos (por persona)', priceArs: 17500, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 'a5', category: 'MENÚ ADULTOS', name: 'Buffet 2 — 4 elementos (por persona)', priceArs: 22500, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 'p1', category: 'PERSONAL', name: 'Mozo (por 12 hs)', priceArs: 52000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
-  { id: 'd1', category: 'DECORACIÓN', name: 'Juego de living (por juego)', priceArs: 35000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
-  { id: 'd2', category: 'DECORACIÓN', name: 'Mesas altas + banquetas (por juego)', priceArs: 20000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
+  { id: 'd1', category: 'DECORACIÓN', name: 'Juego de living (por juego)', priceArs: 35000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25', authorityId: '5' },
+  { id: 'd2', category: 'DECORACIÓN', name: 'Mesas altas + banquetas (por juego)', priceArs: 20000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25', authorityId: '5' },
   { id: 'd3', category: 'DECORACIÓN', name: 'Fundas de silla (por unidad)', priceArs: 800, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 'd4', category: 'DECORACIÓN', name: 'Alas LED', priceArs: 15000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
   { id: 'd5', category: 'DECORACIÓN', name: 'Cortinas LED', priceArs: 20000, priceUsd: null, currency: 'ARS', vigencia: 'Desde 01/03/25' },
@@ -192,6 +194,27 @@ export const CATALOG_DATA: ServiceItem[] = [
 ];
 
 export const PACK_PREMIUM_ITEMS = ['t3', 't4', 't5', 't6', 't7'];
+
+export interface CateringPayment {
+  id: number;
+  date: string;
+  amount: number;       // For type PAGO
+  type: 'LIQUIDACION' | 'PAGO';
+  concept: string;      // e.g. 'Casamiento Rodriguez', 'Pago Efectivo'
+  partyDate?: string;
+  liquidation?: number; // For type LIQUIDACION
+  balance: number;
+  method?: string;      // 'Efectivo' | 'Transferencia'
+  performedBy?: string; // User who did the liquidation
+  performedAt?: string; // ISO date of liquidation
+}
+
+export const CATERING_PAYMENTS_MOCK: CateringPayment[] = [
+  { id: 1, date: '2026-03-01', type: 'LIQUIDACION', concept: 'Casamiento Rodríguez', partyDate: '01/03/26', liquidation: 5200000, amount: 0, balance: 5200000, performedBy: 'Franco', performedAt: '2026-03-01T14:30:00' },
+  { id: 2, date: '2026-03-05', type: 'PAGO', concept: 'Pago a Cuenta', amount: 1200000, balance: 4000000, method: 'Transferencia' },
+  { id: 3, date: '2026-03-07', type: 'LIQUIDACION', concept: 'Quinceañera Valentina', partyDate: '07/03/26', liquidation: 3800000, amount: 0, balance: 7800000, performedBy: 'Julia', performedAt: '2026-03-07T11:20:00' },
+  { id: 4, date: '2026-03-10', type: 'PAGO', concept: 'Liquidación Total', amount: 3000000, balance: 4800000, method: 'Efectivo' },
+];
 
 export const formatCurrency = (amount: number, currency: 'ARS' | 'USD' = 'ARS') => {
   if (currency === 'USD') return `u$s ${amount}`;
