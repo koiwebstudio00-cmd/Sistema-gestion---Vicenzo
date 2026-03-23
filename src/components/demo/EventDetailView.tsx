@@ -390,16 +390,6 @@ export const EventDetailView = ({ eventId, onBack, user }: { eventId: string, on
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    {category.category === 'MOBILIARIO' && (
-                      <button onClick={() => setIsAddFurnitureOpen(true)} className="p-2 bg-[#1F6FEB]/10 text-[#1F6FEB] border border-[#1F6FEB]/30 hover:bg-[#1F6FEB]/20 rounded-xl transition-all" title="Cargar mobiliario">
-                        <Plus size={18} />
-                      </button>
-                    )}
-                    {category.category === 'CATERING' && (
-                      <button onClick={() => setIsAddCateringOpen(true)} className="p-2 bg-[#1F6FEB]/10 text-[#1F6FEB] border border-[#1F6FEB]/30 hover:bg-[#1F6FEB]/20 rounded-xl transition-all" title="Cargar catering">
-                        <Plus size={18} />
-                      </button>
-                    )}
                     <button 
                       onClick={() => {
                         setSelectedCategoryForPayment(category.category);
