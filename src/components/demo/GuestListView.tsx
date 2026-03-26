@@ -4,10 +4,17 @@ import { GUESTS_MOCK, type Guest, type User } from "../../features/demo/demoShar
 
 export const GuestListView = ({ user }: { user: User }) => {
   const [activeMainTab, setActiveMainTab] = useState<'A-Z' | 'TABLES'>('A-Z');
-  const [activeSubTab, setActiveSubTab] = useState<'ADULTS' | 'YOUNG'>('ADULTS');
+  const [activeSubTab, setActiveSubTab] = useState<'ADULTS' | 'YOUNG' | 'AFTER'>('ADULTS');
   const [searchTerm, setSearchTerm] = useState('');
   const [guests, setGuests] = useState<Guest[]>(GUESTS_MOCK);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const guestEditDeadline = '2026-03-31';
+  const canEditGuests = ['JULIA', 'MILI', 'CLIENTE', 'INVITADO'].includes(user.role) ? new Date() <= new Date(`${guestEditDeadline}T23:59:59`) : user.role !== 'INVITADO';
+  const canOpenGuestControls = user.role === 'JULIA' || user.role === 'MILI';
+  const isControlRole = user.role === 'CONTROL';
+  const isClientOwner = user.role === 'CLIENTE' || user.role === 'INVITADO';
   
   // Form State
   const [newGuest, setNewGuest] = useState<{name: string, type: Guest['type'], table: string}>({
@@ -20,6 +27,7 @@ export const GuestListView = ({ user }: { user: User }) => {
     setGuests(prev => prev.map(g => 
       g.id === id ? { ...g, present: !g.present } : g
     ));
+    setHasUnsavedChanges(true);
   };
 
   const addGuest = () => {
@@ -34,10 +42,13 @@ export const GuestListView = ({ user }: { user: User }) => {
     setGuests([...guests, guest]);
     setNewGuest({ name: '', type: 'ADULT', table: '' });
     setShowAddModal(false);
+    setShowActionMenu(false);
+    setHasUnsavedChanges(true);
   };
 
   const removeGuest = (id: string) => {
     setGuests(guests.filter(g => g.id !== id));
+    setHasUnsavedChanges(true);
   };
 
   // Counters
@@ -47,8 +58,10 @@ export const GuestListView = ({ user }: { user: User }) => {
   const stats = {
     adultsIn: adultGuests.filter(g => g.present).length,
     adultsTotal: adultGuests.length,
-    youngIn: youngGuests.filter(g => g.present).length,
-    youngTotal: youngGuests.length,
+    youngIn: guests.filter(g => g.type === 'YOUNG' && g.present).length,
+    youngTotal: guests.filter(g => g.type === 'YOUNG').length,
+    afterIn: guests.filter(g => g.type === 'AFTER_1AM' && g.present).length,
+    afterTotal: guests.filter(g => g.type === 'AFTER_1AM').length,
   };
 
   const filteredGuests = useMemo(() => {
@@ -84,7 +97,7 @@ export const GuestListView = ({ user }: { user: User }) => {
             <p className="text-[#8B949E] text-xs font-bold uppercase tracking-widest mt-1">15 de Valentina — 07/03/2026</p>
           </div>
           
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             <div className="bg-[#161B22] border border-[#30363D] p-4 rounded-2xl flex flex-col items-center min-w-[120px]">
               <span className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest mb-1">Adultos</span>
               <div className="text-xl font-display font-black text-[#1F6FEB]">{stats.adultsIn} <span className="text-[#30363D]">/</span> {stats.adultsTotal}</div>
@@ -93,8 +106,45 @@ export const GuestListView = ({ user }: { user: User }) => {
               <span className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest mb-1">Jóvenes</span>
               <div className="text-xl font-display font-black text-[#E91E8C]">{stats.youngIn} <span className="text-[#30363D]">/</span> {stats.youngTotal}</div>
             </div>
+            <div className="bg-[#161B22] border border-[#30363D] p-4 rounded-2xl flex flex-col items-center min-w-[120px]">
+              <span className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest mb-1">After 1</span>
+              <div className="text-xl font-display font-black text-[#8B5CF6]">{stats.afterIn} <span className="text-[#30363D]">/</span> {stats.afterTotal}</div>
+            </div>
           </div>
         </div>
+
+        {isClientOwner && (
+          <div className="mb-6 p-4 bg-[#161B22] border border-[#C8A951]/20 rounded-2xl">
+            <div className="text-[10px] font-black uppercase tracking-widest text-[#C8A951] mb-2">Fecha límite para cargar invitados</div>
+            <div className="text-lg font-display font-black text-[#E6EDF3]">
+              {new Date(`${guestEditDeadline}T12:00:00`).toLocaleDateString('es-AR')}
+            </div>
+          </div>
+        )}
+
+        {canOpenGuestControls && (
+          <div className="mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="text-[10px] font-black uppercase tracking-widest text-[#8B949E]">
+              Edición habilitada hasta {new Date(`${guestEditDeadline}T12:00:00`).toLocaleDateString('es-AR')}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowActionMenu(true)}
+                disabled={!canEditGuests}
+                className="h-11 px-5 bg-[#161B22] border border-[#30363D] rounded-2xl text-[10px] font-black uppercase tracking-widest text-[#E6EDF3] disabled:opacity-40"
+              >
+                Agregar / Eliminar
+              </button>
+              <button
+                onClick={() => setHasUnsavedChanges(false)}
+                disabled={!hasUnsavedChanges}
+                className="h-11 px-5 bg-[#3FB950] text-[#0D1117] rounded-2xl text-[10px] font-black uppercase tracking-widest disabled:opacity-40"
+              >
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Global Controls */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -108,12 +158,11 @@ export const GuestListView = ({ user }: { user: User }) => {
               className="w-full bg-[#161B22] border border-[#30363D] rounded-2xl pl-12 pr-4 py-4 text-sm focus:border-[#C8A951] outline-none transition-all shadow-inner"
             />
           </div>
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="h-[58px] px-6 bg-[#3FB950] text-[#0D1117] rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-lg shadow-[#3FB950]/10"
-          >
-            <Plus size={20} /> Cargar Invitado
-          </button>
+          {isClientOwner && (
+            <button className="h-[58px] px-6 bg-[#161B22] border border-[#30363D] text-[#E6EDF3] rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+              <FileText size={20} /> Imprimir lista
+            </button>
+          )}
         </div>
 
         {/* Main Tabs */}
@@ -147,17 +196,24 @@ export const GuestListView = ({ user }: { user: User }) => {
                 onClick={() => setActiveSubTab('YOUNG')}
                 className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'YOUNG' ? 'bg-[#E91E8C] text-white' : 'text-[#8B949E] hover:text-[#E6EDF3]'}`}
               >
-                Jóvenes / After
+                Jóvenes
+              </button>
+              <button 
+                onClick={() => setActiveSubTab('AFTER')}
+                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === 'AFTER' ? 'bg-[#8B5CF6] text-white' : 'text-[#8B949E] hover:text-[#E6EDF3]'}`}
+              >
+                After
               </button>
             </div>
 
             {/* List A-Z */}
             <div className="grid grid-cols-1 gap-3">
               {sortedAZ
-                .filter(g => activeSubTab === 'ADULTS' 
-                  ? (g.type === 'ADULT' || g.type === 'HONOR')
-                  : (g.type === 'YOUNG' || g.type === 'AFTER_1AM')
-                )
+                .filter(g => {
+                  if (activeSubTab === 'ADULTS') return g.type === 'ADULT' || g.type === 'HONOR';
+                  if (activeSubTab === 'YOUNG') return g.type === 'YOUNG';
+                  return g.type === 'AFTER_1AM';
+                })
                 .map(g => (
                   <div 
                     key={g.id} 
@@ -181,8 +237,8 @@ export const GuestListView = ({ user }: { user: User }) => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                       <button onClick={() => removeGuest(g.id)} className="p-3 text-[#30363D] hover:text-[#F85149] transition-colors"><Trash2 size={16} /></button>
-                       {user.role !== 'INVITADO' && (
+                       {canOpenGuestControls && canEditGuests && <button onClick={() => removeGuest(g.id)} className="p-3 text-[#30363D] hover:text-[#F85149] transition-colors"><Trash2 size={16} /></button>}
+                       {(isControlRole || user.role !== 'INVITADO') && !isClientOwner && (
                          <button 
                            onClick={() => togglePresence(g.id)}
                            className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all ${g.present ? 'bg-[#3FB950] border-[#3FB950] text-[#0D1117] shadow-lg shadow-[#3FB950]/20' : 'border-[#30363D] text-[#30363D] hover:border-[#3FB950] hover:text-[#3FB950]'}`}
@@ -220,6 +276,30 @@ export const GuestListView = ({ user }: { user: User }) => {
       </div>
 
       {/* Add Guest Modal */}
+      {showActionMenu && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#0D1117]/90 backdrop-blur-sm" onClick={() => setShowActionMenu(false)} />
+          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl relative z-10 p-6 space-y-4">
+            <h3 className="text-sm font-black text-[#E6EDF3] uppercase tracking-widest">Acciones de lista</h3>
+            <button
+              onClick={() => {
+                setShowActionMenu(false);
+                setShowAddModal(true);
+              }}
+              className="w-full py-4 rounded-2xl bg-[#3FB950] text-[#0D1117] font-black uppercase tracking-widest text-xs"
+            >
+              Agregar invitado
+            </button>
+            <button
+              onClick={() => setShowActionMenu(false)}
+              className="w-full py-4 rounded-2xl bg-[#0D1117] border border-[#30363D] text-[#E6EDF3] font-black uppercase tracking-widest text-xs"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-[#0D1117]/90 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />

@@ -11,6 +11,7 @@ interface CollectionItem {
     amount: number;
     paid: number;
     status: 'PENDING' | 'PARTIAL' | 'PAID';
+    assignedTo: 'Guillermina' | 'Franco' | 'Valentina';
     lastPaymentBy?: string;
     lastPaymentDate?: string;
 }
@@ -18,14 +19,15 @@ interface CollectionItem {
 export const GestionCobrosView = ({ user }: { user: User }) => {
     // Mock data for Guillermina's collections
     const [collections, setCollections] = useState<CollectionItem[]>([
-        { id: 'c1', eventId: '1', eventName: 'Casamiento Rodríguez-Pérez', eventDate: '2026-03-01', serviceName: 'Juego de living x4', amount: 140000, paid: 0, status: 'PENDING' },
-        { id: 'c2', eventId: '1', eventName: 'Casamiento Rodríguez-Pérez', eventDate: '2026-03-01', serviceName: 'Cabina fotográfica', amount: 100000, paid: 50000, status: 'PARTIAL', lastPaymentBy: 'Julia', lastPaymentDate: '2026-02-20' },
-        { id: 'c3', eventId: '2', eventName: '15 de Valentina Suárez', eventDate: '2026-03-07', serviceName: 'Juego de living x2', amount: 70000, paid: 0, status: 'PENDING' },
-        { id: 'c4', eventId: '3', eventName: 'Cumpleaños TechCorp', eventDate: '2026-03-08', serviceName: 'Mesas altas + banquetas x5', amount: 100000, paid: 0, status: 'PENDING' },
-        { id: 'c5', eventId: '4', eventName: '15 de Isabella Torres', eventDate: '2026-03-14', serviceName: 'Mesa de dulces Extra', amount: 210000, paid: 0, status: 'PENDING' },
+        { id: 'c1', eventId: '1', eventName: 'Casamiento Rodríguez-Pérez', eventDate: '2026-03-01', serviceName: 'Juego de living x4', amount: 140000, paid: 0, status: 'PENDING', assignedTo: 'Guillermina' },
+        { id: 'c2', eventId: '1', eventName: 'Casamiento Rodríguez-Pérez', eventDate: '2026-03-01', serviceName: 'Cabina fotográfica', amount: 100000, paid: 50000, status: 'PARTIAL', assignedTo: 'Franco', lastPaymentBy: 'Julia', lastPaymentDate: '2026-02-20' },
+        { id: 'c3', eventId: '2', eventName: '15 de Valentina Suárez', eventDate: '2026-03-07', serviceName: 'Juego de living x2', amount: 70000, paid: 0, status: 'PENDING', assignedTo: 'Guillermina' },
+        { id: 'c4', eventId: '3', eventName: 'Cumpleaños TechCorp', eventDate: '2026-03-08', serviceName: 'Mesas altas + banquetas x5', amount: 100000, paid: 0, status: 'PENDING', assignedTo: 'Valentina' },
+        { id: 'c5', eventId: '4', eventName: '15 de Isabella Torres', eventDate: '2026-03-14', serviceName: 'Mesa de dulces Extra', amount: 210000, paid: 0, status: 'PENDING', assignedTo: 'Franco' },
     ]);
 
     const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+    const [notifications, setNotifications] = useState<{ person: string; total: number; eventNames: string[] }[]>([]);
 
     const toggleSelection = (id: string) => {
         const newSet = new Set(selectedItemIds);
@@ -36,6 +38,18 @@ export const GestionCobrosView = ({ user }: { user: User }) => {
 
     const handleCollect = () => {
         if (selectedItemIds.size === 0) return;
+        const selected = collections.filter(item => selectedItemIds.has(item.id));
+        const groupedNotifications = selected
+            .filter(item => item.assignedTo !== 'Guillermina')
+            .reduce<Record<string, { person: string; total: number; eventNames: string[] }>>((acc, item) => {
+                if (!acc[item.assignedTo]) {
+                    acc[item.assignedTo] = { person: item.assignedTo, total: 0, eventNames: [] };
+                }
+                acc[item.assignedTo].total += item.amount - item.paid;
+                acc[item.assignedTo].eventNames.push(item.eventName);
+                return acc;
+            }, {});
+
         setCollections(prev => prev.map(c => {
             if (selectedItemIds.has(c.id)) {
                 return { 
@@ -48,6 +62,7 @@ export const GestionCobrosView = ({ user }: { user: User }) => {
             }
             return c;
         }));
+        setNotifications(Object.values(groupedNotifications));
         setSelectedItemIds(newSet => { newSet.clear(); return newSet; });
     };
 
@@ -80,6 +95,13 @@ export const GestionCobrosView = ({ user }: { user: User }) => {
         return Array.from(selectedItemIds).map(id => collections.find(c => c.id === id)!).filter(Boolean);
     }, [selectedItemIds, collections]);
 
+    const totalsByPerson = useMemo(() => {
+        return pendingCollections.reduce<Record<string, number>>((acc, item) => {
+            acc[item.assignedTo] = (acc[item.assignedTo] || 0) + (item.amount - item.paid);
+            return acc;
+        }, { Guillermina: 0, Franco: 0, Valentina: 0 });
+    }, [pendingCollections]);
+
     return (
         <div className="p-4 lg:p-8 min-h-screen bg-[#0D1117] text-[#E6EDF3] animate-in fade-in duration-500 flex flex-col h-full">
             <div className="max-w-[1400px] mx-auto w-full h-full flex flex-col">
@@ -91,10 +113,49 @@ export const GestionCobrosView = ({ user }: { user: User }) => {
                         <h1 className="text-3xl font-display font-black text-[#E6EDF3] tracking-tighter">Planilla de Cobros</h1>
                     </div>
                     <p className="text-[#8B949E] text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                       {user.role === 'GUILLERMINA' ? 'Gestión de servicios de terceros' : 'Módulo de tesorería y saldos'}
+                       {user.role === 'GUILLERMINA' ? 'Planilla exclusiva de Guillermina' : 'Solo recibís notificaciones de cobro'}
                        <span className="text-[10px] bg-[#161B22] border border-[#30363D] px-2 py-0.5 rounded-full text-[#E6EDF3]">Usuario: {user.name}</span>
                     </p>
                 </header>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#1F6FEB] mb-2">Franco</div>
+                        <div className="text-2xl font-display font-black text-[#1F6FEB]">{formatCurrency(totalsByPerson.Franco || 0)}</div>
+                    </div>
+                    <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#3FB950] mb-2">Guillermina</div>
+                        <div className="text-2xl font-display font-black text-[#3FB950]">{formatCurrency(totalsByPerson.Guillermina || 0)}</div>
+                    </div>
+                    <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#F778BA] mb-2">Valentina</div>
+                        <div className="text-2xl font-display font-black text-[#F778BA]">{formatCurrency(totalsByPerson.Valentina || 0)}</div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#8B949E] mb-2">Cobrado en el mes</div>
+                        <div className="text-2xl font-display font-black text-[#E6EDF3]">{formatCurrency(620000)}</div>
+                    </div>
+                    <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#8B949E] mb-2">Cobrado en el año</div>
+                        <div className="text-2xl font-display font-black text-[#E6EDF3]">{formatCurrency(4180000)}</div>
+                    </div>
+                </div>
+
+                {notifications.length > 0 && (
+                    <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {notifications.map(notification => (
+                            <div key={notification.person} className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5">
+                                <div className="text-[10px] font-black uppercase tracking-widest text-[#C8A951] mb-2">Notificación enviada</div>
+                                <div className="text-lg font-black text-[#E6EDF3] mb-1">{notification.person}</div>
+                                <div className="text-sm text-[#8B949E] mb-3">Total a confirmar: {formatCurrency(notification.total)}</div>
+                                <button className="px-4 py-2 rounded-xl bg-[#1F6FEB] text-white text-[10px] font-black uppercase tracking-widest">Confirmar recepción</button>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 <div className="flex flex-col xl:flex-row gap-8 flex-1 min-h-0">
                     {/* Tabla Estilo Excel (Spreadsheet) */}

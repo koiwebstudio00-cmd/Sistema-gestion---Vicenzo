@@ -31,26 +31,29 @@ export const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onCl
   const menuItems = [
     { id: 'AGENDA', label: 'Agenda', icon: Calendar },
     { id: 'EVENTOS', label: 'Eventos', icon: FileText },
-    { id: 'AVERIGUACIONES', label: 'Averiguaciones', icon: Search, roleSpecific: ['JEFE', 'RECEPCIONISTA', 'MILI', 'GUILLERMINA'] },
+    { id: 'AVERIGUACIONES', label: 'Averiguaciones', icon: Search, roleSpecific: ['JEFE', 'JULIA', 'MILI', 'GUILLERMINA'] },
     { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'ENCARGADO'] },
-    { id: 'PAGOS', label: 'Historial de Cobros', icon: CreditCard, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
-    { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
-    { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
-    { id: 'GASTOS', label: 'Gastos Semanales', icon: DollarSign, restricted: ['RECEPCIONISTA', 'MILI', 'PRODUCCION', 'CATERING', 'INVITADO', 'ENCARGADO'] },
-    { id: 'COBROS', label: 'Mis Cobros', icon: Wallet, roleSpecific: ['GUILLERMINA', 'JEFE'] },
-    { id: 'GUESTS', label: 'Lista de Invitados', icon: Users, roleSpecific: ['INVITADO'] },
-    { id: 'PLANILLA', label: 'Planilla Operativa', icon: FileText, roleSpecific: ['INVITADO'] },
+    { id: 'PAGOS', label: 'Historial de Cobros', icon: CreditCard, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'JULIA', 'MILI', 'ENCARGADO'] },
+    { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO', 'JULIA', 'MILI', 'ENCARGADO'] },
+    { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO', 'JULIA', 'MILI', 'ENCARGADO'] },
+    { id: 'GASTOS', label: 'Gastos Semanales', icon: DollarSign, restricted: ['JULIA', 'MILI', 'CATERING', 'INVITADO', 'ENCARGADO'] },
+    { id: 'COBROS', label: 'Mis Cobros', icon: Wallet, roleSpecific: ['GUILLERMINA'] },
+    { id: 'GUESTS', label: 'Lista de Invitados', icon: Users, roleSpecific: ['INVITADO', 'CLIENTE', 'CONTROL'] },
+    { id: 'PLANILLA', label: 'Planilla Operativa', icon: FileText, roleSpecific: ['INVITADO', 'CLIENTE'] },
   ];
 
   const filteredItems = menuItems.filter(item => {
-    if (user.role === 'INVITADO') {
+    if (user.role === 'INVITADO' || user.role === 'CLIENTE') {
       return ['GUESTS', 'PLANILLA'].includes(item.id);
+    }
+    if (user.role === 'CONTROL') {
+      return ['GUESTS'].includes(item.id);
     }
     if (user.role === 'CATERING') {
       return ['AGENDA', 'EVENTOS', 'LIQUIDACIONES'].includes(item.id);
     }
     if (user.role === 'GUILLERMINA') {
-      return ['COBROS'].includes(item.id);
+      return ['AGENDA', 'EVENTOS', 'AVERIGUACIONES', 'CATALOGO', 'PAGOS', 'LIQUIDACIONES', 'REPORTES', 'GASTOS', 'COBROS'].includes(item.id);
     }
     // Filter out roleSpecific items for general roles unless specified
     if (item.roleSpecific && !item.roleSpecific.includes(user.role)) return false;
@@ -113,7 +116,7 @@ export const Sidebar = ({ activeView, onChangeView, user, onLogout, isOpen, onCl
           })}
         </nav>
 
-        {user.role !== 'INVITADO' && user.role !== 'GUILLERMINA' && (
+        {user.role !== 'INVITADO' && user.role !== 'CLIENTE' && user.role !== 'CONTROL' && user.role !== 'GUILLERMINA' && (
           <div className="px-3 py-4 space-y-1">
             <button
               onClick={() => {

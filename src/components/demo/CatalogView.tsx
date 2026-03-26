@@ -9,6 +9,12 @@ export const CatalogView = ({ user }: { user: User }) => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [editingItem, setEditingItem] = useState<ServiceItem | null>(null);
 
+  const eventButtonsMock = [
+    { category: '15 AÑOS', services: ['Alquiler', 'Base', 'Grupo electrógeno', 'Menú Jóvenes', 'Extras'] },
+    { category: 'CASAMIENTO', services: ['Alquiler', 'Base', 'IVA', 'Grupo electrógeno', 'Menú Adultos'] },
+    { category: 'CORPORATIVO', services: ['Alquiler', 'Base', 'IVA', 'Coffee', 'Mobiliario'] },
+  ];
+
   const categories = ['ALL', ...Array.from(new Set(CATALOG_DATA.map(item => item.category)))];
 
   const filteredCatalog = activeCategory === 'ALL'
@@ -27,6 +33,21 @@ export const CatalogView = ({ user }: { user: User }) => {
             Agregar servicio
           </button>
         )}
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {eventButtonsMock.map(card => (
+          <div key={card.category} className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-[#C8A951] mb-3">{card.category}</div>
+            <div className="flex flex-wrap gap-2">
+              {card.services.map(service => (
+                <span key={service} className="px-2 py-1 rounded-lg bg-[#0D1117] border border-[#30363D] text-[#8B949E] text-[10px] font-black uppercase tracking-widest">
+                  {service}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Mobile Category Filter (Dropdown) */}
@@ -69,6 +90,8 @@ export const CatalogView = ({ user }: { user: User }) => {
               <tr className="border-b border-[#30363D] text-[#8B949E] text-sm">
                 <th className="p-4 font-medium">Servicio</th>
                 <th className="p-4 font-medium">Categoría</th>
+                <th className="p-4 font-medium text-center">Obligatorio</th>
+                <th className="p-4 font-medium text-center">Botón</th>
                 <th className="p-4 font-medium text-right">Precio ARS</th>
                 <th className="p-4 font-medium text-right">Precio USD</th>
                 <th className="p-4 font-medium text-center">Moneda</th>
@@ -81,6 +104,16 @@ export const CatalogView = ({ user }: { user: User }) => {
                 <tr key={item.id} className="hover:bg-[#30363D]/20 transition-colors group">
                   <td className="p-4 font-medium text-[#E6EDF3]">{item.name}</td>
                   <td className="p-4 text-[#8B949E] text-xs uppercase tracking-wider">{item.category}</td>
+                  <td className="p-4 text-center">
+                    <span className={`text-[10px] font-black px-2 py-1 rounded ${item.isMandatory ? 'bg-[#F85149]/15 text-[#F85149]' : 'bg-[#30363D] text-[#8B949E]'}`}>
+                      {item.isMandatory ? 'Sí' : 'No'}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center">
+                    <span className={`text-[10px] font-black px-2 py-1 rounded ${item.type === 'PER_PERSON' ? 'bg-[#1F6FEB]/15 text-[#1F6FEB]' : 'bg-[#3FB950]/15 text-[#3FB950]'}`}>
+                      {item.type === 'PER_PERSON' ? 'Por persona' : 'Simple'}
+                    </span>
+                  </td>
                   <td className="p-4 text-right tabular-nums text-[#E6EDF3]">
                     {item.priceArs ? formatCurrency(item.priceArs) : '—'}
                   </td>
@@ -95,7 +128,7 @@ export const CatalogView = ({ user }: { user: User }) => {
                   <td className="p-4 text-[#8B949E] text-sm">{item.vigencia}</td>
                   <td className="p-4 text-center">
                     <div className="flex items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                      {(user.role === 'JEFE' || user.role === 'GUILLERMINA' || user.role === 'RECEPCIONISTA') && (
+                      {(user.role === 'JEFE' || user.role === 'GUILLERMINA' || user.role === 'JULIA') && (
                         <button
                           onClick={() => setEditingItem(item)}
                           className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors"
@@ -124,7 +157,7 @@ export const CatalogView = ({ user }: { user: User }) => {
           >
             <div className="flex justify-between items-start mb-2">
               <div className="font-medium text-[#E6EDF3] text-lg leading-tight pr-2">{item.name}</div>
-              {(user.role === 'JEFE' || user.role === 'GUILLERMINA' || user.role === 'RECEPCIONISTA') && (
+              {(user.role === 'JEFE' || user.role === 'GUILLERMINA' || user.role === 'JULIA') && (
                 <button
                   onClick={() => setEditingItem(item)}
                   className="p-1.5 text-[#8B949E] hover:text-[#C8A951] hover:bg-[#C8A951]/10 rounded transition-colors shrink-0"
@@ -137,6 +170,15 @@ export const CatalogView = ({ user }: { user: User }) => {
             <div className="mb-3">
               <span className="text-[#8B949E] text-xs font-bold uppercase tracking-wider bg-[#30363D]/50 px-2 py-1 rounded">
                 {item.category}
+              </span>
+            </div>
+
+            <div className="flex gap-2 mb-3">
+              <span className={`text-[10px] font-black px-2 py-1 rounded ${item.isMandatory ? 'bg-[#F85149]/15 text-[#F85149]' : 'bg-[#30363D] text-[#8B949E]'}`}>
+                {item.isMandatory ? 'Obligatorio' : 'Opcional'}
+              </span>
+              <span className={`text-[10px] font-black px-2 py-1 rounded ${item.type === 'PER_PERSON' ? 'bg-[#1F6FEB]/15 text-[#1F6FEB]' : 'bg-[#3FB950]/15 text-[#3FB950]'}`}>
+                {item.type === 'PER_PERSON' ? 'Por persona' : 'Simple'}
               </span>
             </div>
 

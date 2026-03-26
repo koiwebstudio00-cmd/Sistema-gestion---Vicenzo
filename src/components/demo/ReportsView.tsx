@@ -2,27 +2,11 @@ import React, { useMemo } from "react";
 import { AlertTriangle, BarChart3, Calendar, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, Clock, CreditCard, DollarSign, Edit2, FileText, Filter, Mail, MapPin, Package, Phone, Plus, Printer, Scale, Search, Tag, Trash2, Users, TrendingUp, Target } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from "recharts";
 import { CATALOG_DATA, EVENTS_DATA, PACK_PREMIUM_ITEMS, USERS, formatCurrency, type EventStatus, type ServiceItem, type User } from "../../features/demo/demoShared";
-import { Modal } from "../ui/Modal";
 
 
 export const ReportsView = () => {
   const [budgetsMili, setBudgetsMili] = React.useState(12);
   const [budgetsJulia, setBudgetsJulia] = React.useState(18);
-  const [isBudgetModalOpen, setIsBudgetModalOpen] = React.useState(false);
-  const [budgetForm, setBudgetForm] = React.useState({ 
-    client: '', 
-    date: new Date().toISOString().split('T')[0], 
-    type: 'Casamiento', 
-    vendor: 'Julia' 
-  });
-
-  const handleSaveBudget = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (budgetForm.vendor === 'Mili') setBudgetsMili(prev => prev + 1);
-    else if (budgetForm.vendor === 'Julia') setBudgetsJulia(prev => prev + 1);
-    setIsBudgetModalOpen(false);
-    setBudgetForm({ client: '', date: new Date().toISOString().split('T')[0], type: 'Casamiento', vendor: 'Julia' });
-  };
 
   const dataIncome = [
     { name: 'Oct', value: 8200000 },
@@ -77,12 +61,6 @@ export const ReportsView = () => {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4 lg:gap-0">
         <h1 className="text-2xl font-display font-bold text-[#E6EDF3]">Reportes — Marzo 2026</h1>
         <div className="flex items-center gap-4 w-full lg:w-auto">
-          <button 
-            onClick={() => setIsBudgetModalOpen(true)}
-            className="flex items-center gap-2 bg-[#C8A951] text-[#0D1117] px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest hover:scale-105 transition-transform"
-          >
-            <Plus size={16} /> Registrar Presupuesto
-          </button>
           <div className="relative flex-1 lg:flex-none">
             <select className="w-full bg-[#161B22] border border-[#30363D] text-[#E6EDF3] rounded-lg pl-4 pr-10 py-2 appearance-none focus:outline-none focus:border-[#C8A951]">
               <option>Este mes</option>
@@ -111,10 +89,10 @@ export const ReportsView = () => {
           </div>
         </div>
         <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
-          <div className="text-[#8B949E] text-sm font-medium mb-2">Saldo pendiente</div>
-          <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">$24.4M</div>
-          <div className="text-[#D29922] text-xs font-medium flex items-center gap-1">
-            ⚠️ 3 eventos
+          <div className="text-[#8B949E] text-sm font-medium mb-2">Averiguaciones confirmadas</div>
+          <div className="text-3xl font-display font-bold text-[#E6EDF3] mb-1">9</div>
+          <div className="text-[#3FB950] text-xs font-medium flex items-center gap-1">
+            ▲ 3 en la última semana
           </div>
         </div>
         <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
@@ -324,63 +302,6 @@ export const ReportsView = () => {
         </div>
       </div>
 
-      <Modal isOpen={isBudgetModalOpen} onClose={() => setIsBudgetModalOpen(false)} title="Registrar Presupuesto Entregado">
-        <form onSubmit={handleSaveBudget} className="space-y-4">
-          <div>
-            <label className="block text-[#8B949E] text-[10px] font-black uppercase tracking-widest mb-1">Nombre del Cliente / Pareja</label>
-            <input 
-              required
-              type="text" 
-              value={budgetForm.client}
-              onChange={e => setBudgetForm({...budgetForm, client: e.target.value})}
-              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] outline-none" 
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[#8B949E] text-[10px] font-black uppercase tracking-widest mb-1">Día de Visita</label>
-              <input 
-                required
-                type="date" 
-                value={budgetForm.date}
-                onChange={e => setBudgetForm({...budgetForm, date: e.target.value})}
-                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] outline-none" 
-              />
-            </div>
-            <div>
-              <label className="block text-[#8B949E] text-[10px] font-black uppercase tracking-widest mb-1">Tipo de Evento</label>
-              <select 
-                value={budgetForm.type}
-                onChange={e => setBudgetForm({...budgetForm, type: e.target.value})}
-                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-[#E6EDF3] focus:border-[#C8A951] outline-none"
-              >
-                <option>Casamiento</option>
-                <option>15 años</option>
-                <option>Cumpleaños</option>
-                <option>Corporativo</option>
-                <option>Egresados</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-[#8B949E] text-[10px] font-black uppercase tracking-widest mb-1">Atendido por</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 text-sm text-[#E6EDF3]">
-                <input type="radio" value="Julia" checked={budgetForm.vendor === 'Julia'} onChange={e => setBudgetForm({...budgetForm, vendor: e.target.value})} className="accent-[#C8A951]" /> Julia
-              </label>
-              <label className="flex items-center gap-2 text-sm text-[#E6EDF3]">
-                <input type="radio" value="Mili" checked={budgetForm.vendor === 'Mili'} onChange={e => setBudgetForm({...budgetForm, vendor: e.target.value})} className="accent-[#C8A951]" /> Mili
-              </label>
-            </div>
-          </div>
-          <div className="pt-4 flex justify-end gap-3 border-t border-[#30363D]">
-            <button type="button" onClick={() => setIsBudgetModalOpen(false)} className="px-4 py-2 text-[#8B949E] hover:text-[#E6EDF3] text-sm font-bold">Cancelar</button>
-            <button type="submit" className="px-4 py-2 bg-[#C8A951] text-[#0D1117] rounded-lg text-sm font-bold hover:scale-105 transition-transform shadow-lg shadow-[#C8A951]/20">
-              Registrar Visita
-            </button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 };

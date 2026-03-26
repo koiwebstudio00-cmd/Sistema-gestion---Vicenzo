@@ -19,7 +19,7 @@ import { EventCategory, EventStatus, formatCurrency } from '../../features/demo/
 
 interface CreateEventViewProps {
   onBack: () => void;
-  onSave: (event: any) => void;
+  onSave?: (event: any) => void;
 }
 
 export const CreateEventView: React.FC<CreateEventViewProps> = ({ onBack, onSave }) => {
@@ -65,7 +65,7 @@ export const CreateEventView: React.FC<CreateEventViewProps> = ({ onBack, onSave
     
     // Alquiler
     alquilerTotal: '',
-    alquilerSena: '',
+    alquilerSena: '2000000',
     
     // Estado Inicial
     status: 'POR_SENAR' as EventStatus
@@ -94,8 +94,35 @@ export const CreateEventView: React.FC<CreateEventViewProps> = ({ onBack, onSave
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave?.(formData);
   };
+
+  // --- AUTOMATION ---
+  useEffect(() => {
+    const total = Number(formData.alquilerTotal) || 0;
+    const sena = Number(formData.alquilerSena) || 0;
+    
+    if (total > 0 && !formData.alquilerSena) {
+      setFormData(prev => ({ ...prev, alquilerSena: '2000000' }));
+      return;
+    }
+
+    // Auto-status logic
+    if (formData.status !== 'CANCELADO') {
+      let nextStatus: EventStatus = 'POR_SENAR';
+      if (sena > 0) {
+        if (sena >= total && total > 0) {
+          nextStatus = 'CONFIRMADO';
+        } else {
+          nextStatus = 'SENA_EN_PROCESO';
+        }
+      }
+      
+      if (formData.status !== nextStatus) {
+        setFormData(prev => ({ ...prev, status: nextStatus }));
+      }
+    }
+  }, [formData.alquilerTotal, formData.alquilerSena, formData.status]);
 
   // Helper for Section Titles
   const SectionHeader = ({ title }: { title: string }) => (

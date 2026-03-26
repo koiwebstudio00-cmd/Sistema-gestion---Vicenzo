@@ -8,12 +8,14 @@ import { Modal } from "../ui/Modal";
 export const EventListView = ({ onSelectEvent, onCreateEvent, user }: { onSelectEvent: (id: string) => void, onCreateEvent: () => void, user: User }) => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const isProduction = user.role === 'PRODUCCION' || user.role === 'TIO_FRANCO';
+  const isProduction = user.role === 'PRODUCCION' || user.role === 'ENCARGADO' || user.role === 'TIO_FRANCO';
+  const currentMonth = '2026-03';
 
   const filteredEvents = EVENTS_DATA.filter(event => {
     const matchesStatus = filterStatus === 'ALL' || event.status === filterStatus;
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesStatus && matchesSearch;
+    const matchesCurrentMonth = !isProduction || event.date.startsWith(currentMonth);
+    return matchesStatus && matchesSearch && matchesCurrentMonth;
   });
 
   const getStatusBadge = (status: EventStatus) => {

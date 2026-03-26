@@ -54,11 +54,11 @@ export const AppShell = ({
 
       {/* Bottom Navigation - Mobile Only */}
       <div className="lg:hidden fixed bottom-6 left-6 right-6 h-16 bg-[#161B22]/90 backdrop-blur-xl border border-[#30363D] rounded-3xl z-50 flex items-center justify-around px-4 shadow-2xl overflow-hidden shadow-[#000]/50">
-        {user.role === 'INVITADO' ? (
+        {user.role === 'INVITADO' || user.role === 'CLIENTE' || user.role === 'CONTROL' ? (
           <>
             {[
               { id: 'GUESTS', icon: Users, label: 'Invitados' },
-              { id: 'PLANILLA', icon: FileText, label: 'Planilla' },
+              ...(user.role === 'CONTROL' ? [] : [{ id: 'PLANILLA', icon: FileText, label: 'Planilla' }]),
             ].map((item) => (
               <button
                 key={item.id}

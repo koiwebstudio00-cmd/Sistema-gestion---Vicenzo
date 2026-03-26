@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Plus, Calculator, CreditCard, ChevronRight, TrendingUp, Info, CheckCircle, AlertCircle, History, Search, X, DollarSign } from "lucide-react";
 import { TarjetaChuchiView } from "./TarjetaChuchiView";
+import { TarjetaVicenzoView } from "./TarjetaVicenzoView";
 import { LiquidacionEventoView } from "./LiquidacionEventoView";
 import { EVENTS_DATA, type User, CATERING_PAYMENTS_MOCK, formatCurrency } from "../../features/demo/demoShared";
 
 export const LiquidacionesView = ({ user }: { user: User }) => {
-  const [activeView, setActiveView] = useState<'MENU' | 'CHUCHI' | 'EVENTO' | 'LIQUIDACION_LIST' | 'PAGOS_CATERING'>('MENU');
+  const [activeView, setActiveView] = useState<'MENU' | 'CHUCHI' | 'EVENTO' | 'LIQUIDACION_LIST' | 'PAGOS_CATERING' | 'VICENZO' | 'SUELDOS' | 'BEBIDAS'>('MENU');
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -30,6 +31,7 @@ export const LiquidacionesView = ({ user }: { user: User }) => {
   const sortedEvents = [...filteredEvents].sort((a, b) => a.date.localeCompare(b.date));
 
   if (activeView === 'CHUCHI') return <TarjetaChuchiView user={user} onBack={() => setActiveView('MENU')} />;
+  if (activeView === 'VICENZO') return <TarjetaVicenzoView user={user} onBack={() => setActiveView('MENU')} />;
   if (activeView === 'EVENTO' && selectedEvent) return <LiquidacionEventoView event={selectedEvent} user={user} onBack={() => setActiveView('LIQUIDACION_LIST')} />;
 
   if (activeView === 'LIQUIDACION_LIST') {
@@ -258,6 +260,27 @@ export const LiquidacionesView = ({ user }: { user: User }) => {
     );
   }
 
+  if (activeView === 'SUELDOS' || activeView === 'BEBIDAS') {
+    const titles = {
+      SUELDOS: 'Sueldos',
+      BEBIDAS: 'Cálculo de bebidas',
+    } as const;
+
+    return (
+      <div className="p-4 lg:p-8 min-h-screen bg-[#0D1117] text-[#E6EDF3]">
+        <div className="max-w-4xl mx-auto">
+          <button onClick={() => setActiveView('MENU')} className="text-[#8B949E] hover:text-white flex items-center gap-2 font-bold mb-8 transition-colors"><ChevronRight size={16} className="rotate-180" /> Volver</button>
+          <div className="bg-[#161B22] border border-[#30363D] rounded-3xl p-8 shadow-2xl">
+            <h1 className="text-3xl font-display font-black text-[#E6EDF3] tracking-tighter mb-3">{titles[activeView]}</h1>
+            <p className="text-[#8B949E] leading-relaxed">
+              Este módulo quedó incorporado al demo. La vista expone la estructura pedida para jefes y deja preparado el acceso separado para precios propios del salón, proyección mensual de sueldos y cálculo mensual de bebidas.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 lg:p-8 min-h-screen bg-[#0D1117] text-[#E6EDF3] animate-in fade-in duration-500">
       <div className="max-w-5xl mx-auto">
@@ -266,47 +289,65 @@ export const LiquidacionesView = ({ user }: { user: User }) => {
           <p className="text-[#8B949E] text-sm font-medium uppercase tracking-[0.2em]">Gestión de costos y pagos al proveedor de catering</p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-8">
           {/* Tarjeta Chuchi Card */}
           {user.role !== 'CATERING' && (
             <button
               onClick={() => setActiveView('CHUCHI')}
-              className="group relative bg-[#161B22] border border-[#30363D] hover:border-[#C8A951] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden"
+              className="group relative bg-[#161B22] border border-[#30363D] hover:border-[#3FB950] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#C8A951]/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#C8A951]/10 transition-colors" />
-              <div className="w-14 h-14 bg-[#C8A951]/10 text-[#C8A951] rounded-2xl flex items-center justify-center mb-6 border border-[#C8A951]/20">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#3FB950]/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#3FB950]/10 transition-colors" />
+              <div className="w-14 h-14 bg-[#3FB950]/10 text-[#3FB950] rounded-2xl flex items-center justify-center mb-6 border border-[#3FB950]/20">
                 <TrendingUp size={28} />
               </div>
               <h2 className="text-2xl font-black mb-2 flex items-center justify-between tracking-tighter">
                 Tarjeta Chuchi
-                <ChevronRight size={24} className="text-[#C8A951]" />
+                <ChevronRight size={24} className="text-[#3FB950]" />
               </h2>
               <p className="text-[#8B949E] text-sm leading-relaxed mb-6 font-medium">Gestiona la tabla de precios base mensual para la actualización automática de presupuestos.</p>
-              <span className="text-[10px] font-black tracking-widest uppercase py-2 px-4 bg-[#1C2128] border border-[#30363D] rounded-xl group-hover:border-[#C8A951]/30 transition-colors">Ir a configuración</span>
+              <span className="text-[10px] font-black tracking-widest uppercase py-2 px-4 bg-[#1C2128] border border-[#30363D] rounded-xl group-hover:border-[#3FB950]/30 transition-colors">Ir a configuración</span>
+            </button>
+          )}
+
+          {user.role === 'JEFE' && (
+            <button
+              onClick={() => setActiveView('VICENZO')}
+              className="group relative bg-[#161B22] border border-[#30363D] hover:border-[#3FB950] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#3FB950]/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#3FB950]/10 transition-colors" />
+              <div className="w-14 h-14 bg-[#3FB950]/10 text-[#3FB950] rounded-2xl flex items-center justify-center mb-6 border border-[#3FB950]/20">
+                <CreditCard size={28} />
+              </div>
+              <h2 className="text-2xl font-black mb-2 flex items-center justify-between tracking-tighter">
+                Tarjeta Vicenzo
+                <ChevronRight size={24} className="text-[#3FB950]" />
+              </h2>
+              <p className="text-[#8B949E] text-sm leading-relaxed mb-6 font-medium">Tarjeta propia del salón con valores automáticos desde la planilla del evento.</p>
+              <span className="text-[10px] font-black tracking-widest uppercase py-2 px-4 bg-[#1C2128] border border-[#30363D] rounded-xl group-hover:border-[#3FB950]/30 transition-colors">Solo jefes</span>
             </button>
           )}
 
           {/* Liquidación por Evento Card */}
           <button
             onClick={() => setActiveView('LIQUIDACION_LIST')}
-            className={`group relative bg-[#161B22] border border-[#30363D] hover:border-[#1F6FEB] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden ${user.role === 'CATERING' ? 'md:col-span-2 max-w-xl' : ''}`}
+            className="group relative bg-[#161B22] border border-[#30363D] hover:border-[#3FB950] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#1F6FEB]/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#1F6FEB]/10 transition-colors" />
-            <div className="w-14 h-14 bg-[#1F6FEB]/10 text-[#1F6FEB] rounded-2xl flex items-center justify-center mb-6 border border-[#1F6FEB]/20">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#3FB950]/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#3FB950]/10 transition-colors" />
+            <div className="w-14 h-14 bg-[#3FB950]/10 text-[#3FB950] rounded-2xl flex items-center justify-center mb-6 border border-[#3FB950]/20">
               <Calculator size={28} />
             </div>
             <h2 className="text-2xl font-black mb-2 flex items-center justify-between tracking-tighter">
               Liquidación por Evento
-              <ChevronRight size={24} className="text-[#1F6FEB]" />
+              <ChevronRight size={24} className="text-[#3FB950]" />
             </h2>
             <p className="text-[#8B949E] text-sm leading-relaxed mb-6 font-medium">Liquidaciones pendientes y completadas detalle por detalle, persona por persona.</p>
-            <span className="text-[10px] font-black tracking-widest uppercase py-2 px-4 bg-[#1C2128] border border-[#30363D] rounded-xl group-hover:border-[#1F6FEB]/30 transition-colors">Ver listado de eventos</span>
+            <span className="text-[10px] font-black tracking-widest uppercase py-2 px-4 bg-[#1C2128] border border-[#30363D] rounded-xl group-hover:border-[#3FB950]/30 transition-colors">Ver listado de eventos</span>
           </button>
 
           {/* Pagos al Catering Card */}
           <button
             onClick={() => setActiveView('PAGOS_CATERING')}
-            className={`group relative bg-[#161B22] border border-[#30363D] hover:border-[#3FB950] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden ${user.role === 'CATERING' ? 'hidden' : 'md:col-span-2'}`}
+            className={`group relative bg-[#161B22] border border-[#30363D] hover:border-[#3FB950] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden ${user.role === 'CATERING' ? 'hidden' : ''}`}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#3FB950]/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#3FB950]/10 transition-colors" />
             <div className="w-14 h-14 bg-[#3FB950]/10 text-[#3FB950] rounded-2xl flex items-center justify-center mb-6 border border-[#3FB950]/20">
@@ -319,6 +360,42 @@ export const LiquidacionesView = ({ user }: { user: User }) => {
             <p className="text-[#8B949E] text-sm leading-relaxed mb-6 font-medium max-w-xl">Historial de transferencias y pagos en efectivo al servicio de catering corporativo, incluyendo saldos adeudados unificados.</p>
             <span className="text-[10px] font-black tracking-widest uppercase py-2 px-4 bg-[#1C2128] border border-[#30363D] rounded-xl group-hover:border-[#3FB950]/30 transition-colors">Ver cuenta unificada</span>
           </button>
+
+          {user.role === 'JEFE' && (
+            <button
+              onClick={() => setActiveView('SUELDOS')}
+              className="group relative bg-[#161B22] border border-[#30363D] hover:border-[#3FB950] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#3FB950]/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#3FB950]/10 transition-colors" />
+              <div className="w-14 h-14 bg-[#3FB950]/10 text-[#3FB950] rounded-2xl flex items-center justify-center mb-6 border border-[#3FB950]/20">
+                <TrendingUp size={28} />
+              </div>
+              <h2 className="text-2xl font-black mb-2 flex items-center justify-between tracking-tighter">
+                Sueldos
+                <ChevronRight size={24} className="text-[#3FB950]" />
+              </h2>
+              <p className="text-[#8B949E] text-sm leading-relaxed mb-6 font-medium">Módulo paralelo a Tarjeta Chuchi con proyección mensual y porcentaje configurable.</p>
+              <span className="text-[10px] font-black tracking-widest uppercase py-2 px-4 bg-[#1C2128] border border-[#30363D] rounded-xl group-hover:border-[#3FB950]/30 transition-colors">Ver módulo</span>
+            </button>
+          )}
+
+          {user.role === 'JEFE' && (
+            <button
+              onClick={() => setActiveView('BEBIDAS')}
+              className="group relative bg-[#161B22] border border-[#30363D] hover:border-[#3FB950] rounded-3xl p-8 text-left transition-all hover:-translate-y-1 shadow-xl overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#3FB950]/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#3FB950]/10 transition-colors" />
+              <div className="w-14 h-14 bg-[#3FB950]/10 text-[#3FB950] rounded-2xl flex items-center justify-center mb-6 border border-[#3FB950]/20">
+                <Calculator size={28} />
+              </div>
+              <h2 className="text-2xl font-black mb-2 flex items-center justify-between tracking-tighter">
+                Cálculo de bebidas
+                <ChevronRight size={24} className="text-[#3FB950]" />
+              </h2>
+              <p className="text-[#8B949E] text-sm leading-relaxed mb-6 font-medium">Misma estructura de tabla para proyectar costo mensual de bebidas.</p>
+              <span className="text-[10px] font-black tracking-widest uppercase py-2 px-4 bg-[#1C2128] border border-[#30363D] rounded-xl group-hover:border-[#3FB950]/30 transition-colors">Ver módulo</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

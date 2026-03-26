@@ -76,7 +76,7 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
     }
 
     if (currentView === 'NUEVO_EVENTO') {
-      return <CreateEventView onBack={() => handleNavigate('EVENTOS')} />;
+      return <CreateEventView onBack={() => handleNavigate('EVENTOS')} onSave={() => handleNavigate('EVENTOS')} />;
     }
 
     if (currentView === 'FICHA') {
@@ -99,7 +99,7 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
     }
 
     if (currentView === 'PAGOS') {
-      const isRestricted = ['RECEPCIONISTA', 'MILI', 'ENCARGADO', 'PRODUCCION', 'TIO_FRANCO', 'CATERING'].includes(user.role);
+      const isRestricted = ['JULIA', 'MILI', 'ENCARGADO', 'PRODUCCION', 'TIO_FRANCO', 'CATERING'].includes(user.role);
       if (isRestricted) return <AgendaView onSelectEvent={handleSelectEvent} user={user} />;
       return <PaymentsView onSelectEvent={handleSelectEvent} user={user} />;
     }
@@ -157,11 +157,18 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
 
               <div className="p-6 bg-[#C8A951]/5 border border-[#C8A951]/20 rounded-2xl">
                  <h4 className="flex items-center gap-2 text-[10px] font-black uppercase text-[#C8A951] mb-3">
-                   <span>📝</span> Observaciones Importantes
+                   <span>📝</span> Servicios contratados
                  </h4>
-                 <p className="text-sm text-[#8B949E] leading-relaxed italic">
-                   "El plato principal se servirá a las 23:30 hs. El grupo de baile tiene acceso a las 20:00 hs para prueba. Recordar la mesa de dulces sin TACC."
-                 </p>
+                 <div className="space-y-2 text-sm text-[#E6EDF3]">
+                   <div>Alquiler del salón</div>
+                   <div>Base técnica</div>
+                   <div>Pack Premium</div>
+                   <div>Grupo electrógeno</div>
+                   <div>155 menú jóvenes</div>
+                   <div>12 después de 1 AM</div>
+                   <div>2 mozos</div>
+                   <div>Cabina fotográfica</div>
+                 </div>
               </div>
             </div>
           </div>
@@ -176,14 +183,14 @@ export const RoleWorkspacePage = ({ onLogout, user }: RoleWorkspacePageProps) =>
     if (currentView === 'MORE') {
       const menuItems = [
         { id: 'CATALOGO', label: 'Presupuesto', icon: Package, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'ENCARGADO'] },
-        { id: 'AVERIGUACIONES', label: 'Averiguaciones', icon: Search, roleSpecific: ['JEFE', 'RECEPCIONISTA', 'MILI', 'GUILLERMINA'] },
-        { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
-        { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO', 'RECEPCIONISTA', 'MILI', 'ENCARGADO'] },
+        { id: 'AVERIGUACIONES', label: 'Averiguaciones', icon: Search, roleSpecific: ['JEFE', 'JULIA', 'MILI', 'GUILLERMINA'] },
+        { id: 'LIQUIDACIONES', label: 'Liquidaciones', icon: FileText, restricted: ['PRODUCCION', 'TIO_FRANCO', 'JULIA', 'MILI', 'ENCARGADO'] },
+        { id: 'REPORTES', label: 'Reportes', icon: BarChart3, restricted: ['PRODUCCION', 'TIO_FRANCO', 'CATERING', 'INVITADO', 'JULIA', 'MILI', 'ENCARGADO'] },
         { id: 'CONFIGURACION', label: 'Configuración', icon: Settings },
       ];
 
       const filteredItems = menuItems.filter(item => {
-        if (user.role === 'INVITADO') return false;
+        if (user.role === 'INVITADO' || user.role === 'CLIENTE' || user.role === 'CONTROL') return false;
         if (user.role === 'CATERING') return ['LIQUIDACIONES'].includes(item.id);
         return !item.restricted || !item.restricted.includes(user.role);
       });

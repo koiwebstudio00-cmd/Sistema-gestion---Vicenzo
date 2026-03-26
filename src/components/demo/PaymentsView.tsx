@@ -61,6 +61,8 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
 
   const uniqueDates = useMemo(() => Object.keys(groupedPayments), [groupedPayments]);
   const paginatedDates = uniqueDates.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const operationsByEvent = useMemo(() => new Set(filteredPayments.map(payment => payment.eventId)).size, [filteredPayments]);
+  const totalBalance = useMemo(() => EVENTS_DATA.reduce((acc, event) => acc + event.balance, 0), []);
 
   const getMethodIcon = (method: string) => {
     switch (method) {
@@ -106,7 +108,7 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
       </div>
 
       <div className="flex flex-col gap-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
           <div className="bg-[#161B22] border border-[#30363D] border-t-4 border-t-[#3FB950] rounded-2xl p-6 shadow-xl leading-tight">
             <div className="text-[#8B949E] text-[10px] font-black uppercase tracking-[0.15em] mb-2">Total cobrado</div>
             <div className="text-3xl font-display font-black text-[#E6EDF3] mb-1 tracking-tighter">$13.400.000</div>
@@ -121,8 +123,17 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
           </div>
           <div className="bg-[#161B22] border border-[#30363D] border-t-4 border-t-[#C8A951] rounded-2xl p-6 shadow-xl leading-tight">
             <div className="text-[#8B949E] text-[10px] font-black uppercase tracking-[0.15em] mb-2">Operaciones</div>
-            <div className="text-3xl font-display font-black text-[#E6EDF3] mb-1 tracking-tighter">14</div>
-            <div className="text-[#8B949E] text-[10px] font-bold uppercase tracking-tight">Último cobro registrado hoy</div>
+            <div className="text-3xl font-display font-black text-[#E6EDF3] mb-1 tracking-tighter">{operationsByEvent}</div>
+            <div className="text-[#8B949E] text-[10px] font-bold uppercase tracking-tight">Cuenta por fiesta, no por movimiento</div>
+          </div>
+          <div className={`bg-[#161B22] border border-[#30363D] border-t-4 rounded-2xl p-6 shadow-xl leading-tight ${totalBalance >= 0 ? 'border-t-[#3FB950]' : 'border-t-[#F85149]'}`}>
+            <div className="text-[#8B949E] text-[10px] font-black uppercase tracking-[0.15em] mb-2">Saldo total</div>
+            <div className={`text-3xl font-display font-black mb-1 tracking-tighter ${totalBalance >= 0 ? 'text-[#3FB950]' : 'text-[#F85149]'}`}>
+              {formatCurrency(Math.abs(totalBalance))}
+            </div>
+            <div className={`text-[10px] font-bold uppercase tracking-tight ${totalBalance >= 0 ? 'text-[#3FB950]' : 'text-[#F85149]'}`}>
+              {totalBalance >= 0 ? 'A favor del salón' : 'En contra del salón'}
+            </div>
           </div>
         </div>
 
@@ -158,7 +169,6 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
                 <tr>
                   <th className="px-8 py-5">Fecha</th>
                   <th className="px-8 py-5">Evento</th>
-                  <th className="px-8 py-5">Descripción</th>
                   <th className="px-8 py-5 text-right">Monto</th>
                   <th className="px-8 py-5 text-center">Metodo</th>
                   <th className="px-8 py-5">Usuario</th>
@@ -168,13 +178,12 @@ export const PaymentsView = ({ onSelectEvent, user }: { onSelectEvent: (id: stri
                 {paginatedDates.map(date => (
                   <React.Fragment key={date}>
                     <tr className="bg-[#0D1117]/70">
-                      <td colSpan={6} className="px-8 py-3 text-[#C8A951] font-black italic text-[11px] tracking-widest uppercase border-b border-[#30363D]/30">{date}</td>
+                      <td colSpan={5} className="px-8 py-3 text-[#C8A951] font-black italic text-[11px] tracking-widest uppercase border-b border-[#30363D]/30">{date}</td>
                     </tr>
                     {groupedPayments[date].map(p => (
                       <tr key={p.id} className="hover:bg-[#1C2128]/30 transition-colors group">
                         <td className="px-8 py-5 text-[#8B949E] text-xs font-bold">{p.date.split('-').reverse().slice(0, 2).join('/')}</td>
                         <td className="px-8 py-5 text-[#E6EDF3] font-bold group-hover:text-[#C8A951] transition-colors">{p.event}</td>
-                        <td className="px-8 py-5 text-[#8B949E] text-xs font-medium max-w-xs truncate">{p.desc}</td>
                         <td className="px-8 py-5 text-right text-[#3FB950] font-black text-lg tabular-nums tracking-tighter">{formatCurrency(p.amount)}</td>
                         <td className="px-8 py-5 text-center">
                           <div className="flex justify-center">{getMethodIcon(p.method)}</div>

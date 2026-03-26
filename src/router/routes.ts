@@ -13,26 +13,28 @@ export type AppPath = (typeof APP_ROUTES)[keyof typeof APP_ROUTES];
 
 export const DEFAULT_VIEW_BY_ROLE: Record<UserRole, string> = {
   JEFE: 'AGENDA',
-  RECEPCIONISTA: 'AGENDA',
+  JULIA: 'AGENDA',
   MILI: 'AGENDA',
   ENCARGADO: 'AGENDA',
   PRODUCCION: 'EVENTOS',
   TIO_FRANCO: 'EVENTOS',
   CATERING: 'EVENTOS',
   INVITADO: 'GUESTS',
-  CLIENTE: 'EVENTOS',
+  CONTROL: 'GUESTS',
+  CLIENTE: 'GUESTS',
   GUILLERMINA: 'COBROS'
 };
 
 export const ROLE_HOME_BY_ROLE: Record<UserRole, AppPath> = {
   JEFE: APP_ROUTES.dashboard,
-  RECEPCIONISTA: APP_ROUTES.recepcion,
+  JULIA: APP_ROUTES.recepcion,
   MILI: APP_ROUTES.recepcion,
   ENCARGADO: APP_ROUTES.recepcion,
   PRODUCCION: APP_ROUTES.produccion,
   TIO_FRANCO: APP_ROUTES.tioFranco,
   CATERING: APP_ROUTES.catering,
   INVITADO: APP_ROUTES.login, 
+  CONTROL: APP_ROUTES.login,
   CLIENTE: APP_ROUTES.login,
   GUILLERMINA: APP_ROUTES.dashboard
 };

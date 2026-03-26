@@ -1,78 +1,70 @@
 import React, { useMemo, useState } from "react";
-import { ChevronLeft, Save, Calculator, CheckCircle, Info, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, Save, Calculator, CheckCircle, Info } from "lucide-react";
 import { formatCurrency, type User } from "../../features/demo/demoShared";
 
+const PLANILLA_LIQUIDACION_MOCK: Record<string, {
+  menuAdultos: 'Menú 1' | 'Menú 2' | 'Menú Pollo' | 'Buffet' | 'Menú Jóvenes';
+  cantAdultos: number;
+  cantNinos: number;
+  valorCoca: number;
+  cantMozosAdultos: number;
+  cantMozosNinos: number;
+  valorMozo: number;
+  valorMenuNinos: number;
+}> = {
+  '1': { menuAdultos: 'Menú 1', cantAdultos: 180, cantNinos: 22, valorCoca: 4500, cantMozosAdultos: 12, cantMozosNinos: 2, valorMozo: 52000, valorMenuNinos: 0 },
+  '2': { menuAdultos: 'Menú Jóvenes', cantAdultos: 155, cantNinos: 12, valorCoca: 4200, cantMozosAdultos: 8, cantMozosNinos: 1, valorMozo: 52000, valorMenuNinos: 0 },
+  '5': { menuAdultos: 'Menú 2', cantAdultos: 200, cantNinos: 18, valorCoca: 4700, cantMozosAdultos: 13, cantMozosNinos: 2, valorMozo: 52000, valorMenuNinos: 0 },
+};
+
+const MENU_PRICES: Record<string, number> = {
+  'Menú 1': 75000,
+  'Menú 2': 92000,
+  'Menú Pollo': 68000,
+  'Buffet': 85000,
+  'Menú Jóvenes': 53000,
+};
+
 export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, user: User, onBack: () => void }) => {
-  // Mock constant for Tarjeta Chuchi Prices (Normally would come from the other view's state)
-  const [menuType, setMenuType] = useState('Menu 1');
-
-  // Dynamic Prices based on Menu Type
-  const menuPrices: Record<string, number> = {
-    'Menu 1': 75000,
-    'Menu 2': 92000,
-    'Menú Pollo': 68000,
-    'Buffet': 85000,
-    'Menú Jóvenes': 53000
-  };
-
-  const tarjChuchiMarch = {
-    adults: menuPrices[menuType],
-    kids: 26500,
-    mozos: 52000
-  };
-
-  // Local State for manual entries
-  const [showKids, setShowKids] = useState(false);
-  const initialAdults = event.guests?.adults || 120;
-  const [data, setData] = useState({
-    cantAdultos: initialAdults,
-    cantNinos: event.guests?.kids || 35,
-    valorCoca: 4500, // Automátic from Chuchi
-    cantMozos: Math.ceil(initialAdults / 15), // Automatic calc: 1 every 15 adults
-  });
-
+  const autoData = PLANILLA_LIQUIDACION_MOCK[event?.id || '2'] || PLANILLA_LIQUIDACION_MOCK['2'];
   const commissionRate = useMemo(() => {
     const cat = event.category?.toUpperCase() || '';
-    if (cat.includes('CASAMIENTO')) return 15;
-    return 10;
+    return cat.includes('CASAMIENTO') ? 15 : 10;
   }, [event]);
 
+  const [editableData, setEditableData] = useState({
+    valorCoca: autoData.valorCoca,
+    cantMozosAdultos: autoData.cantMozosAdultos,
+    cantMozosNinos: autoData.cantMozosNinos,
+  });
+
   const calculations = useMemo(() => {
-    const subAdultos = data.cantAdultos * tarjChuchiMarch.adults;
-    const subNinos = showKids ? (data.cantNinos * tarjChuchiMarch.kids) : 0;
-    const subTotalGeneral = subAdultos + subNinos; // "Tarjetas"
-    
-    const comision = subTotalGeneral * (commissionRate / 100);
-    const totalCoca = data.cantAdultos * data.valorCoca;
-    const totalMozos = data.cantMozos * tarjChuchiMarch.mozos;
-    
-    // totalFinal: What the catering gets after all adjustments
-    // Logic: Gross (Adults + Kids) - Commission (for Salon) - Coca (for Salon) - Mozos (if catering pays them or if we pay catering for them?)
-    // User says: "VERDE (Salón): Comisión + Coca. NORMAL (Catering): Tarjetas + Mozos"
-    // This implies: Catering Receives = Tarjetas - Comisión - Coca + Mozos? 
-    // Wait, the previous formula was: totalFinal = subTotalGeneral - comision - totalCoca - totalMozos;
-    // Let's adjust to match the "Catering gets Tarjetas + Mozos" but Salón keeps Commission + Coca.
-    // So Catering gets: (Tarjetas - Comisión) + Mozos? No, usually Mozos is a deduction if we (Salón) cover it.
-    // I will stick to a logic that clearly separates them.
-    
-    // Total a Liquidar (Payment to Catering)
-    const totalFinal = (subTotalGeneral - comision - totalCoca);
+    const valorTarjetaAdultos = MENU_PRICES[autoData.menuAdultos];
+    const tarjetasAdultos = autoData.cantAdultos * valorTarjetaAdultos;
+    const tarjetasNinos = autoData.cantNinos * autoData.valorMenuNinos;
+    const totalTarjetas = tarjetasAdultos + tarjetasNinos;
+    const totalCoca = (autoData.cantAdultos + autoData.cantNinos) * editableData.valorCoca;
+    const totalMozos =
+      (editableData.cantMozosAdultos * autoData.valorMozo) +
+      (editableData.cantMozosNinos * autoData.valorMozo);
+    const comision = totalTarjetas * (commissionRate / 100);
+    const totalFinal = totalTarjetas + totalMozos - comision - totalCoca;
 
     return {
-      subAdultos,
-      subNinos,
-      subTotalGeneral,
-      comision,
+      valorTarjetaAdultos,
+      tarjetasAdultos,
+      tarjetasNinos,
+      totalTarjetas,
       totalCoca,
       totalMozos,
-      totalFinal
+      comision,
+      totalFinal,
     };
-  }, [data, showKids, commissionRate]);
+  }, [autoData, editableData, commissionRate]);
 
   return (
     <div className="p-4 lg:p-8 min-h-screen bg-[#0D1117] text-[#E6EDF3]">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
+      <div className="max-w-6xl mx-auto">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
           <div className="flex flex-col gap-4">
             <button onClick={onBack} className="h-10 px-4 w-fit bg-[#161B22] border border-[#30363D] rounded-xl text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-2 transition-all active:scale-95">
@@ -80,11 +72,14 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
             </button>
             <div>
               <h1 className="text-2xl sm:text-3xl font-display font-black text-[#E6EDF3] tracking-tighter">Liquidación por Evento</h1>
-              <div className="flex items-center gap-3 mt-2">
+              <div className="flex flex-wrap items-center gap-3 mt-2">
                 <span className="bg-[#C8A951]/20 text-[#C8A951] border border-[#C8A951]/30 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest leading-none">
                   {event?.category || 'S/D'}
                 </span>
                 <span className="text-[#8B949E] text-xs font-medium uppercase tracking-widest">{event?.date || 'S/D'}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest bg-[#161B22] border border-[#30363D] px-2 py-1 rounded-lg text-[#3FB950]">
+                  Auto desde planilla
+                </span>
               </div>
             </div>
           </div>
@@ -102,8 +97,17 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
           )}
         </div>
 
-        {/* Calculation - Desktop Table View */}
-        <div className="hidden lg:block bg-[#161B22] border border-[#30363D] rounded-3xl overflow-hidden shadow-2xl mb-10">
+        <div className="mb-6 bg-[#161B22] border border-[#30363D] rounded-3xl p-6">
+          <div className="flex items-start gap-3">
+            <Info size={18} className="text-[#C8A951] mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-[#E6EDF3]">Los datos de menú y cantidades salen predefinidos desde la planilla mock del evento.</p>
+              <p className="text-xs text-[#8B949E] mt-1">Solo quedan editables cantidad de coca y cantidad de mozos, tal como pediste.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#161B22] border border-[#30363D] rounded-3xl overflow-hidden shadow-2xl mb-10">
           <div className="px-6 py-4 bg-[#1C2128] border-b border-[#30363D] flex items-center gap-2 text-[#3FB950]">
             <Calculator size={18} /> <h2 className="text-xs font-black uppercase tracking-widest">Planilla de Cálculo</h2>
           </div>
@@ -124,144 +128,74 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
                 <tr className="hover:bg-[#0D1117]/20 transition-colors">
                   <td className="px-6 py-6 font-bold text-[#E6EDF3]">
                     <div className="flex flex-col gap-2">
-                       <span>ADULTOS</span>
-                       <select 
-                         value={menuType}
-                         onChange={(e) => setMenuType(e.target.value)}
-                         className="bg-[#0D1117] border border-[#30363D] text-[#8B949E] text-[10px] font-bold uppercase p-1.5 rounded-lg w-[120px] outline-none"
-                       >
-                         <option value="Menu 1">Menú 1</option>
-                         <option value="Menu 2">Menú 2</option>
-                         <option value="Menú Pollo">Menú Pollo</option>
-                         <option value="Buffet">Buffet</option>
-                         <option value="Menú Jóvenes">Menú Jóvenes</option>
-                       </select>
+                      <span>ADULTOS</span>
+                      <span className="bg-[#0D1117] border border-[#30363D] text-[#8B949E] text-[10px] font-bold uppercase px-3 py-2 rounded-lg w-fit">
+                        {autoData.menuAdultos}
+                      </span>
                     </div>
                   </td>
+                  <td className="px-4 py-6 text-center font-bold text-[#3FB950]">{autoData.cantAdultos}</td>
+                  <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(calculations.valorTarjetaAdultos)}</td>
                   <td className="px-4 py-6">
-                    <input type="number" value={data.cantAdultos} onChange={(e) => setData({...data, cantAdultos: parseInt(e.target.value) || 0})} className="w-20 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#3FB950] focus:border-[#3FB950] outline-none" />
+                    <input
+                      type="number"
+                      value={editableData.valorCoca}
+                      onChange={(e) => setEditableData({ ...editableData, valorCoca: parseInt(e.target.value) || 0 })}
+                      className="w-24 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#3FB950] outline-none block"
+                    />
                   </td>
-                  <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(tarjChuchiMarch.adults)}</td>
+                  <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(autoData.valorMozo)}</td>
                   <td className="px-4 py-6">
-                    <input type="number" value={data.valorCoca} onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})} className="w-24 mx-auto bg-[#0D1117] border border-[#F85149]/30 rounded-lg px-2 py-1.5 text-center font-bold text-[#F85149] focus:border-[#F85149] outline-none" />
+                    <input
+                      type="number"
+                      value={editableData.cantMozosAdultos}
+                      onChange={(e) => setEditableData({ ...editableData, cantMozosAdultos: parseInt(e.target.value) || 0 })}
+                      className="w-16 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#3FB950] outline-none block"
+                    />
                   </td>
-                  <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(tarjChuchiMarch.mozos)}</td>
-                  <td className="px-4 py-6">
-                    <input type="number" value={data.cantMozos} onChange={(e) => setData({...data, cantMozos: parseInt(e.target.value) || 0})} className="w-16 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#3FB950] outline-none" />
-                  </td>
-                  <td className="px-6 py-6 text-right font-black text-[#E6EDF3]">{formatCurrency(calculations.subAdultos)}</td>
+                  <td className="px-6 py-6 text-right font-black text-[#E6EDF3]">{formatCurrency(calculations.tarjetasAdultos)}</td>
                 </tr>
-                {showKids ? (
-                  <tr className="hover:bg-[#0D1117]/20 transition-colors animate-in slide-in-from-top duration-300">
-                    <td className="px-6 py-6 font-bold text-[#E6EDF3] flex items-center gap-2">
-                      NIÑOS 
-                      <button onClick={() => setShowKids(false)} className="p-1 hover:bg-[#F85149]/10 text-[#F85149] rounded transition-all">
-                        <Trash2 size={12} />
-                      </button>
-                    </td>
-                    <td className="px-4 py-6">
-                      <input type="number" value={data.cantNinos} onChange={(e) => setData({...data, cantNinos: parseInt(e.target.value) || 0})} className="w-20 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#3FB950] focus:border-[#3FB950] outline-none" />
-                    </td>
-                    <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(tarjChuchiMarch.kids)}</td>
-                    <td className="px-4 py-6 text-center text-[#30363D]">─</td>
-                    <td className="px-4 py-6 text-center text-[#30363D]">─</td>
-                    <td className="px-4 py-6 text-center text-[#30363D]">─</td>
-                    <td className="px-6 py-6 text-right font-black text-[#E6EDF3]">{formatCurrency(calculations.subNinos)}</td>
-                  </tr>
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-4">
-                      <button 
-                        onClick={() => setShowKids(true)}
-                        className="flex items-center gap-2 text-[10px] font-black text-[#8B949E] hover:text-[#C8A951] uppercase tracking-widest transition-all"
-                      >
-                        <Plus size={14} className="bg-[#30363D] rounded-md p-0.5" /> Agregar cubiertos Niños
-                      </button>
-                    </td>
-                  </tr>
-                )}
+                <tr className="hover:bg-[#0D1117]/20 transition-colors">
+                  <td className="px-6 py-6 font-bold text-[#E6EDF3]">NIÑOS</td>
+                  <td className="px-4 py-6 text-center font-bold text-[#3FB950]">{autoData.cantNinos}</td>
+                  <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(autoData.valorMenuNinos)}</td>
+                  <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(editableData.valorCoca)}</td>
+                  <td className="px-4 py-6 text-center text-[#8B949E] font-medium">{formatCurrency(autoData.valorMozo)}</td>
+                  <td className="px-4 py-6">
+                    <input
+                      type="number"
+                      value={editableData.cantMozosNinos}
+                      onChange={(e) => setEditableData({ ...editableData, cantMozosNinos: parseInt(e.target.value) || 0 })}
+                      className="w-16 mx-auto bg-[#0D1117] border border-[#30363D] rounded-lg px-2 py-1.5 text-center font-bold text-[#E6EDF3] focus:border-[#3FB950] outline-none block"
+                    />
+                  </td>
+                  <td className="px-6 py-6 text-right font-black text-[#E6EDF3]">{formatCurrency(calculations.tarjetasNinos)}</td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Mobile View */}
-        <div className="lg:hidden space-y-4 mb-10">
-           {/* Card Adultos */}
-           <div className="bg-[#161B22] border border-[#30363D] rounded-3xl p-6 space-y-6 shadow-xl">
-              <div className="flex justify-between items-center border-b border-[#30363D]/50 pb-4">
-                <h3 className="text-sm font-black text-[#E6EDF3] tracking-widest uppercase">Rubro Adultos</h3>
-                <span className="text-xs font-black text-[#3FB950] bg-[#3FB950]/10 px-3 py-1 rounded-lg">TART: {formatCurrency(calculations.subAdultos)}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">Cant Personas</label>
-                  <input type="number" value={data.cantAdultos} onChange={(e) => setData({...data, cantAdultos: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-center font-black text-[#3FB950] text-lg outline-none focus:border-[#3FB950]" />
-                </div>
-                <div>
-                  <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-1">Gasto Coca (u)</label>
-                  <input type="number" value={data.valorCoca} onChange={(e) => setData({...data, valorCoca: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#F85149]/30 rounded-xl px-4 py-3 text-center font-black text-[#F85149] text-sm outline-none focus:border-[#F85149]" />
-                </div>
-              </div>
-              <div className="pt-4 border-t border-[#30363D]/30 flex flex-col gap-4">
-                <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block">Cant Mozos</label>
-                <input type="number" value={data.cantMozos} onChange={(e) => setData({...data, cantMozos: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-center font-black text-[#E6EDF3] text-sm outline-none focus:border-[#3FB950]" />
-              </div>
-           </div>
-
-           {/* Card Niños */}
-           {showKids ? (
-              <div className="bg-[#161B22] border border-[#30363D] rounded-3xl p-6 space-y-6 shadow-xl animate-in zoom-in-95 duration-200">
-                  <div className="flex justify-between items-center border-b border-[#30363D]/50 pb-4">
-                    <h3 className="text-sm font-black text-[#E6EDF3] tracking-widest uppercase flex items-center gap-2">
-                       Rubro Niños 
-                       <button onClick={() => setShowKids(false)}><Trash2 size={14} className="text-[#F85149]" /></button>
-                    </h3>
-                    <span className="text-xs font-black text-[#3FB950] bg-[#3FB950]/10 px-3 py-1 rounded-lg">TART: {formatCurrency(calculations.subNinos)}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">Cant Niños</label>
-                      <input type="number" value={data.cantNinos} onChange={(e) => setData({...data, cantNinos: parseInt(e.target.value) || 0})} className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-center font-black text-[#3FB950] text-lg outline-none focus:border-[#3FB950]" />
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest block mb-2">Valor Tarjeta</label>
-                      <div className="w-full h-[52px] flex items-center justify-center bg-[#0D1117] border border-transparent rounded-xl text-sm font-bold text-[#8B949E]">{formatCurrency(tarjChuchiMarch.kids)}</div>
-                    </div>
-                  </div>
-              </div>
-            ) : (
-              <button 
-                onClick={() => setShowKids(true)}
-                className="w-full border-2 border-dashed border-[#30363D] rounded-3xl p-6 text-[#8B949E] hover:border-[#C8A951] hover:text-[#C8A951] transition-all flex flex-col items-center gap-2"
-              >
-                <Plus size={24} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Agregar Cubiertos Niños</span>
-              </button>
-            )}
-        </div>
-
-        {/* Desglose Final */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           <div className="p-8 bg-[#161B22] border border-[#30363D] rounded-3xl h-full shadow-lg">
             <h3 className="text-[10px] font-black text-[#8B949E] uppercase tracking-widest mb-6 flex items-center gap-2 text-[#C8A951]">
-              <Info size={16} /> Distribución según {event.category}
+              <Info size={16} /> Desglose automático
             </h3>
             <div className="space-y-4">
-              <div className="p-4 bg-[#F85149]/5 border border-[#F85149]/20 rounded-2xl">
-                <h4 className="text-[9px] font-black text-[#F85149] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                   <div className="w-1.5 h-1.5 rounded-full bg-[#F85149]" /> A FAVOR DEL SALÓN
+              <div className="p-4 bg-[#3FB950]/5 border border-[#3FB950]/20 rounded-2xl">
+                <h4 className="text-[9px] font-black text-[#3FB950] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#3FB950]" /> A FAVOR DEL SALÓN
                 </h4>
                 <p className="text-xs text-[#E6EDF3]/80 leading-relaxed font-medium">
-                  El salón retiene la <strong className="text-[#F85149]">comisión del {commissionRate}%</strong> y el cargo por <strong className="text-[#F85149]">consumo de Coca-Cola</strong>.
+                  Comisión del {commissionRate}% y consumo de coca.
                 </p>
               </div>
               <div className="p-4 bg-[#E6EDF3]/5 border border-[#30363D] rounded-2xl">
                 <h4 className="text-[9px] font-black text-[#8B949E] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                   <div className="w-1.5 h-1.5 rounded-full bg-[#8B949E]" /> A FAVOR DEL CATERING
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#8B949E]" /> EN CONTRA DEL SALÓN
                 </h4>
                 <p className="text-xs text-[#E6EDF3]/80 leading-relaxed font-medium">
-                  El proveedor recibe el neto de las <strong className="text-[#E6EDF3]">tarjetas de invitados</strong> y los honorarios de los <strong className="text-[#E6EDF3]">mozos</strong>.
+                  Tarjetas netas al catering y costo de mozos.
                 </p>
               </div>
             </div>
@@ -270,40 +204,40 @@ export const LiquidacionEventoView = ({ event, user, onBack }: { event: any, use
           <div className="bg-[#1C2128] border border-[#30363D] rounded-3xl overflow-hidden shadow-2xl">
             <div className="p-8 space-y-5">
               <div className="flex justify-between items-center text-sm font-medium">
-                <span className="text-[#8B949E]">Tarjetas (Catering)</span>
-                <span className="text-[#E6EDF3] font-black">{formatCurrency(calculations.subTotalGeneral)}</span>
+                <span className="text-[#8B949E]">Tarjetas</span>
+                <span className="text-[#E6EDF3] font-black">{formatCurrency(calculations.totalTarjetas)}</span>
               </div>
               <div className="flex justify-between items-center text-sm font-black">
-                <span className="text-[#F85149]">Comisión Salón ({commissionRate}%)</span>
-                <span className="text-[#F85149]">- {formatCurrency(calculations.comision)}</span>
+                <span className="text-[#3FB950]">Comisión salón ({commissionRate}%)</span>
+                <span className="text-[#3FB950]">{formatCurrency(calculations.comision)}</span>
               </div>
               <div className="flex justify-between items-center text-sm font-black">
-                <span className="text-[#F85149]">Gasto Coca (Salón)</span>
-                <span className="text-[#F85149]">- {formatCurrency(calculations.totalCoca)}</span>
+                <span className="text-[#3FB950]">Coca</span>
+                <span className="text-[#3FB950]">{formatCurrency(calculations.totalCoca)}</span>
               </div>
               <div className="flex justify-between items-center text-sm font-medium pt-2 border-t border-[#30363D]/30">
-                <span className="text-[#8B949E]">Gasto Mozos (Catering)</span>
+                <span className="text-[#8B949E]">Mozos</span>
                 <span className="text-[#E6EDF3] font-black">{formatCurrency(calculations.totalMozos)}</span>
               </div>
               <div className="h-[2px] bg-[#30363D] my-4" />
               <div className="flex justify-between items-end pt-2">
                 <div>
                   <h4 className="text-[10px] font-black text-[#C8A951] uppercase tracking-[0.2em] mb-1">Total a Liquidar</h4>
-                  <p className="text-[9px] text-[#8B949E] font-bold tracking-tight uppercase">Neto final para Proveedor</p>
+                  <p className="text-[9px] text-[#8B949E] font-bold tracking-tight uppercase">Calculado desde la planilla mock</p>
                 </div>
-                <div className="text-4xl font-display font-black text-[#3FB950] tracking-tighter">
+                <div className={`${calculations.totalFinal >= 0 ? 'text-[#3FB950]' : 'text-[#8B949E]'} text-4xl font-display font-black tracking-tighter`}>
                   {formatCurrency(calculations.totalFinal)}
                 </div>
               </div>
             </div>
             <div className="bg-[#C8A951]/10 border-t border-[#C8A951]/20 px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-               <div className="flex items-center gap-2 text-[#C8A951] font-black text-[9px] uppercase tracking-widest leading-none">
-                  <CheckCircle size={14} /> Liquidación automatizada — Responsable: {event.performedBy || user.name}
-               </div>
-               <div className="text-[8px] text-[#8B949E] font-bold tracking-[0.2em] space-y-1 text-left sm:text-right">
-                 <p uppercase>ID EVENTO: {event.id}</p>
-                 <p className="text-[#C8A951]">FECHA REGISTRO: {event.performedAt || new Date().toLocaleString()}</p>
-               </div>
+              <div className="flex items-center gap-2 text-[#C8A951] font-black text-[9px] uppercase tracking-widest leading-none">
+                <CheckCircle size={14} /> Liquidación automatizada — Responsable: {event.performedBy || user.name}
+              </div>
+              <div className="text-[8px] text-[#8B949E] font-bold tracking-[0.2em] space-y-1 text-left sm:text-right">
+                <p>ID EVENTO: {event.id}</p>
+                <p className="text-[#C8A951]">FECHA REGISTRO: {event.performedAt || new Date().toLocaleString()}</p>
+              </div>
             </div>
           </div>
         </div>
